@@ -1,0 +1,134 @@
+# Development Profile WITHOUT Database - For Testing SpringDoc OpenAPI Integration
+# This profile allows testing the API documentation without requiring PostgreSQL
+# Use: mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev-no-db"
+
+spring:
+  application:
+    name: car-sharing-app
+  
+  # Disable database and gateway auto-configuration
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.cloud.gateway.config.GatewayAutoConfiguration
+      - org.springframework.cloud.gateway.config.GatewayClassPathWarningAutoConfiguration
+      - org.springframework.cloud.gateway.config.GatewayMetricsAutoConfiguration
+      - org.springframework.cloud.gateway.config.GatewayRedisAutoConfiguration
+  
+  # Disable cloud services
+  cloud:
+    gateway:
+      server:
+        webflux:
+          enabled: false
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+  
+  # Set web application type to servlet (not reactive)
+  main:
+    web-application-type: servlet
+  
+  # JPA disabled
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+# Disable Eureka client
+eureka:
+  client:
+    enabled: false
+
+# SpringDoc OpenAPI - Development Configuration (No DB)
+springdoc:
+  # Swagger UI customization
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+    default-models-expand-depth: 3
+    default-model-expand-depth: 3
+    show-extensions: true
+    show-common-extensions: true
+    try-it-out-enabled: true
+    filter: false
+    syntax-highlight:
+      activated: true
+      theme: monokai
+    # OAuth2 configuration for Swagger UI (Keycloak integration)
+    oauth:
+      client-id: car-sharing-swagger
+      use-pkce-with-authorization-code-grant: true
+  
+  # OpenAPI documentation paths
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  
+  # Packages to scan for API endpoints
+  packages-to-scan: com.services.car_sharing_app
+  
+  # Paths to include in documentation
+  paths-to-match: /api/v1/**
+  
+  # Show actuator endpoints in documentation (dev only)
+  show-actuator: true
+  
+  # API metadata
+  version: v1.0.0-dev-no-db
+  api-description: Car Sharing Application REST API - Development Environment (No Database)
+
+# Management endpoints configuration (Actuator)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+# Logging configuration for development
+logging:
+  level:
+    root: INFO
+    com.services.car_sharing_app: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Server configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: true
