@@ -1,0 +1,10 @@
+# Discovery Service - Development overrides
+
+eureka:
+  server:
+    enable-self-preservation: false
+
+logging:
+  level:
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
