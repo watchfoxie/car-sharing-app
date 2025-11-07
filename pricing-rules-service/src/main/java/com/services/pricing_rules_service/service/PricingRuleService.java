@@ -58,13 +58,13 @@ import java.util.List;
  * <p><strong>Example Calculation:</strong></p>
  * <pre>
  * Input: 2 days, 5 hours, 30 minutes rental for STANDARD category
- * Pricing: DAY=50 RON, HOUR=10 RON, MINUTE=0.50 RON
+ * Pricing: DAY=50 MDL, HOUR=10 MDL, MINUTE=0.50 MDL
  * 
  * Breakdown:
- *   2 DAY    × 50   RON = 100 RON
- *   5 HOUR   × 10   RON =  50 RON
- *  30 MINUTE × 0.50 RON =  15 RON
- * Total: 165 RON
+ *   2 DAY    × 50   MDL = 100 MDL
+ *   5 HOUR   × 10   MDL =  50 MDL
+ *  30 MINUTE × 0.50 MDL =  15 MDL
+ * Total: 165 MDL
  * </pre>
  *
  * <p><strong>Validation Rules:</strong></p>
@@ -276,13 +276,13 @@ public class PricingRuleService {
      * <pre>
      * Scenario 1: Short rental (90 minutes)
      *   Input: ECONOM, 90 minutes
-     *   Rules: HOUR=8 RON, MINUTE=0.30 RON
-     *   Breakdown: 1 HOUR (60 min) × 8 RON + 30 MINUTE × 0.30 RON = 17 RON
+     *   Rules: HOUR=8 MDL, MINUTE=0.30 MDL
+     *   Breakdown: 1 HOUR (60 min) × 8 MDL + 30 MINUTE × 0.30 MDL = 17 MDL
      *
      * Scenario 2: Multi-day rental (2d 5h 15m)
      *   Input: PREMIUM, 2880 + 300 + 15 = 3195 minutes
-     *   Rules: DAY=80 RON, HOUR=15 RON, MINUTE=0.60 RON
-     *   Breakdown: 2 DAY × 80 RON + 5 HOUR × 15 RON + 15 MINUTE × 0.60 RON = 244 RON
+     *   Rules: DAY=80 MDL, HOUR=15 MDL, MINUTE=0.60 MDL
+     *   Breakdown: 2 DAY × 80 MDL + 5 HOUR × 15 MDL + 15 MINUTE × 0.60 MDL = 244 MDL
      * </pre>
      *
      * <p><strong>Edge Cases:</strong></p>
@@ -340,7 +340,7 @@ public class PricingRuleService {
                     .pricePerUnit(dayRule.getPricePerUnit())
                     .subtotal(dayCost)
                     .build());
-            log.debug("Breakdown: {} days × {} RON = {} RON", days, dayRule.getPricePerUnit(), dayCost);
+            log.debug("Breakdown: {} days × {} MDL = {} MDL", days, dayRule.getPricePerUnit(), dayCost);
         }
 
         // 2. Extract remaining HOURS
@@ -354,7 +354,7 @@ public class PricingRuleService {
                     .pricePerUnit(hourRule.getPricePerUnit())
                     .subtotal(hourCost)
                     .build());
-            log.debug("Breakdown: {} hours × {} RON = {} RON", hours, hourRule.getPricePerUnit(), hourCost);
+            log.debug("Breakdown: {} hours × {} MDL = {} MDL", hours, hourRule.getPricePerUnit(), hourCost);
         }
 
         // 3. Extract leftover MINUTES (round up partial minutes)
@@ -367,7 +367,7 @@ public class PricingRuleService {
                     .pricePerUnit(minuteRule.getPricePerUnit())
                     .subtotal(minuteCost)
                     .build());
-            log.debug("Breakdown: {} minutes × {} RON = {} RON", minutes, minuteRule.getPricePerUnit(), minuteCost);
+            log.debug("Breakdown: {} minutes × {} MDL = {} MDL", minutes, minuteRule.getPricePerUnit(), minuteCost);
         }
 
         // Calculate total cost
@@ -388,7 +388,7 @@ public class PricingRuleService {
                             duration, dayRule.getMaxDuration()));
         }
 
-        log.info("Successfully calculated price: totalCost={} RON, breakdown={} units", totalCost, breakdown.size());
+        log.info("Successfully calculated price: totalCost={} MDL, breakdown={} units", totalCost, breakdown.size());
         return CalculatePriceResponse.builder()
                 .totalCost(totalCost)
                 .totalDuration(duration)

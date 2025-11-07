@@ -20,6 +20,10 @@ spring:
         default_schema: rental
         jdbc:
           time_zone: UTC
+        # Transaction isolation level for concurrency control
+        # READ_COMMITTED allows better performance while EXCLUDE constraint prevents conflicts
+        connection:
+          isolation: 2  # READ_COMMITTED (2 = TRANSACTION_READ_COMMITTED)
   flyway:
     enabled: true
     schemas: rental
@@ -48,8 +52,6 @@ spring:
 
 server:
   port: 8084
-  servlet:
-    context-path: /api/rental
 
 eureka:
   client:
