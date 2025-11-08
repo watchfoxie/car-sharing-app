@@ -1,0 +1,23 @@
+.feedback-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.feedback-card mat-icon {
+	vertical-align: middle;
+	margin-right: 0.25rem;
+}
+
+.error {
+	color: #d32f2f;
+}
+
+.muted {
+	color: rgba(0, 0, 0, 0.6);
+}
+
+mat-progress-spinner {
+	display: block;
+	margin: 1.5rem auto;
+}

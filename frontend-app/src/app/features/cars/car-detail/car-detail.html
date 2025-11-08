@@ -1,1 +1,66 @@
-<p>car-detail works!</p>
+<section *ngIf="loading(); else detailLoaded" class="loading">
+	<mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</section>
+
+<ng-template #detailLoaded>
+	<p *ngIf="errorMessage()" class="error">
+		{{ errorMessage() }}
+		<a routerLink="/cars">Back to catalog</a>
+	</p>
+
+	<ng-container *ngIf="car() as car">
+		<mat-card appearance="outlined" class="car-info">
+			<mat-card-header>
+				<mat-card-title>{{ car.brand }} {{ car.model }}</mat-card-title>
+				<mat-card-subtitle>
+					{{ car.category }} · {{ car.dailyPrice | number: '1.0-0' }} MDL / day
+				</mat-card-subtitle>
+			</mat-card-header>
+			<mat-card-content>
+				<p>{{ car.description || 'No description provided for this vehicle yet.' }}</p>
+				<mat-divider></mat-divider>
+				<div class="specs">
+					<span><mat-icon>airline_seat_recline_normal</mat-icon> Seats: {{ car.seats ?? 'N/A' }}</span>
+					<span><mat-icon>settings</mat-icon> Transmission: {{ car.transmissionType ?? 'N/A' }}</span>
+					<span><mat-icon>local_gas_station</mat-icon> Fuel: {{ car.fuelType ?? 'N/A' }}</span>
+					<span><mat-icon>pin</mat-icon> Registration: {{ car.registrationNumber }}</span>
+				</div>
+				<div class="badges">
+					<mat-chip color="primary" selected>{{ car.shareable ? 'Available' : 'Unavailable' }}</mat-chip>
+					<mat-chip *ngIf="feedbackSummary()?.avgRating != null" color="accent" selected>
+						<mat-icon>star</mat-icon>
+						{{ feedbackSummary()?.avgRating | number: '1.1-1' }} ({{ feedbackSummary()?.feedbackCount }} reviews)
+					</mat-chip>
+				</div>
+			</mat-card-content>
+			<mat-card-actions>
+				<a
+					mat-flat-button
+					color="primary"
+					[routerLink]="['/booking']"
+					[queryParams]="{ carId: car.id, category: car.category }"
+				>
+					<mat-icon>event</mat-icon>
+					Reserve this car
+				</a>
+				<a mat-stroked-button routerLink="/cars">
+					<mat-icon>arrow_back</mat-icon>
+					Back to catalog
+				</a>
+			</mat-card-actions>
+		</mat-card>
+
+		<section class="feedback-section">
+			<h2>Feedback &amp; reviews</h2>
+			<app-feedback-form
+				*ngIf="auth.isAuthenticated()"
+				[carId]="car.id"
+				(feedbackCreated)="onFeedbackCreated()"
+			></app-feedback-form>
+			<ng-container *ngIf="!auth.isAuthenticated()">
+				<p class="muted">Sign in to share your experience with this car.</p>
+			</ng-container>
+			<app-feedback-list [carId]="car.id"></app-feedback-list>
+		</section>
+	</ng-container>
+</ng-template>

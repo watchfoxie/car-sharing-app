@@ -1,0 +1,41 @@
+.filters mat-card {
+	margin-bottom: 1.5rem;
+}
+
+.filters-grid {
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.results {
+	min-height: 200px;
+	margin-bottom: 1.5rem;
+}
+
+.car-cards {
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.badges {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	margin-top: 0.5rem;
+}
+
+mat-progress-spinner {
+	display: block;
+	margin: 2rem auto;
+}
+
+.error-message {
+	color: #d32f2f;
+	font-weight: 500;
+}
+
+.muted {
+	color: rgba(0, 0, 0, 0.6);
+}

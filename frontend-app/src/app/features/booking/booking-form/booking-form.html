@@ -1,1 +1,159 @@
-<p>booking-form works!</p>
+<section class="booking-container">
+	<mat-card class="car-summary" appearance="outlined">
+		<mat-card-header>
+			<mat-card-title>
+				<ng-container *ngIf="car(); else carPlaceholder">
+					{{ car()?.brand }} {{ car()?.model }}
+				</ng-container>
+			</mat-card-title>
+			<mat-card-subtitle *ngIf="car()">
+				Category · {{ car()?.category }}
+			</mat-card-subtitle>
+		</mat-card-header>
+		<mat-card-content>
+			<section *ngIf="loadingCar()" class="loading-state">
+				<mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
+				<span>Fetching vehicle details…</span>
+			</section>
+			<p *ngIf="carError()" class="error">{{ carError() }}</p>
+			<ng-template #carPlaceholder>
+				<span class="muted">Select a car from the catalog to prefill the booking form.</span>
+			</ng-template>
+		</mat-card-content>
+	</mat-card>
+
+	<mat-card appearance="outlined">
+		<mat-card-header>
+			<mat-card-title>Plan your booking</mat-card-title>
+			<mat-card-subtitle>Choose dates and locations, then reserve the vehicle.</mat-card-subtitle>
+		</mat-card-header>
+		<mat-card-content>
+			<p class="error" *ngIf="estimateError()">{{ estimateError() }}</p>
+			<p class="success" *ngIf="rentalSuccess() as success">
+				Booking created! Reference #{{ success.id }}. Track it inside your renter dashboard.
+			</p>
+
+			<form class="booking-form" [formGroup]="form" (ngSubmit)="submitBooking()" novalidate>
+				<div class="grid">
+					<mat-form-field appearance="fill">
+						<mat-label>Vehicle category</mat-label>
+						<input matInput formControlName="vehicleCategory" readonly>
+						<mat-icon matSuffix>directions_car</mat-icon>
+						<mat-error *ngIf="form.controls.vehicleCategory.hasError('required')">
+							Category is required.
+						</mat-error>
+					</mat-form-field>
+
+					<mat-form-field appearance="fill">
+						<mat-label>Pickup date</mat-label>
+						<input matInput [matDatepicker]="pickupPicker" formControlName="pickupDate" required>
+						<mat-datepicker-toggle matIconSuffix [for]="pickupPicker"></mat-datepicker-toggle>
+						<mat-datepicker #pickupPicker></mat-datepicker>
+						<mat-error *ngIf="form.controls.pickupDate.hasError('required')">
+							Pickup date is required.
+						</mat-error>
+					</mat-form-field>
+
+					<mat-form-field appearance="fill">
+						<mat-label>Pickup time</mat-label>
+						<input matInput type="time" formControlName="pickupTime" required>
+						<mat-error *ngIf="form.controls.pickupTime.hasError('required')">
+							Pickup time is required.
+						</mat-error>
+						<mat-error *ngIf="form.controls.pickupTime.hasError('pattern')">
+							Format must be HH:mm.
+						</mat-error>
+					</mat-form-field>
+
+					<mat-form-field appearance="fill">
+						<mat-label>Return date</mat-label>
+						<input matInput [matDatepicker]="returnPicker" formControlName="returnDate" required>
+						<mat-datepicker-toggle matIconSuffix [for]="returnPicker"></mat-datepicker-toggle>
+						<mat-datepicker #returnPicker></mat-datepicker>
+						<mat-error *ngIf="form.controls.returnDate.hasError('required')">
+							Return date is required.
+						</mat-error>
+					</mat-form-field>
+
+					<mat-form-field appearance="fill">
+						<mat-label>Return time</mat-label>
+						<input matInput type="time" formControlName="returnTime" required>
+						<mat-error *ngIf="form.controls.returnTime.hasError('required')">
+							Return time is required.
+						</mat-error>
+						<mat-error *ngIf="form.controls.returnTime.hasError('pattern')">
+							Format must be HH:mm.
+						</mat-error>
+					</mat-form-field>
+
+					<mat-form-field appearance="fill">
+						<mat-label>Pickup location</mat-label>
+						<input matInput formControlName="pickupLocation" placeholder="e.g. Airport T2 parking">
+					</mat-form-field>
+
+					<mat-form-field appearance="fill">
+						<mat-label>Return location</mat-label>
+						<input matInput formControlName="returnLocation" placeholder="Leave empty if identical">
+					</mat-form-field>
+				</div>
+
+				<div class="meta" *ngIf="pickupDisplay() && returnDisplay()">
+					<mat-icon aria-hidden="true">schedule</mat-icon>
+					<span>
+						Pickup: {{ pickupDisplay() }} · Return: {{ returnDisplay() }}
+					</span>
+				</div>
+
+				<div class="actions">
+					<button
+						mat-stroked-button
+						type="button"
+						color="primary"
+						(click)="estimatePrice()"
+						[disabled]="submittingEstimate() || submittingBooking()"
+					>
+						<mat-icon aria-hidden="true">calculate</mat-icon>
+						<span *ngIf="!submittingEstimate(); else estimatingLabel">Estimate price</span>
+					</button>
+					<button
+						mat-flat-button
+						color="accent"
+						type="submit"
+						[disabled]="form.invalid || submittingBooking()"
+					>
+						<mat-icon aria-hidden="true" *ngIf="submittingBooking()" class="spin">hourglass_top</mat-icon>
+						<span>{{ submittingBooking() ? 'Sending request…' : 'Confirm booking' }}</span>
+					</button>
+				</div>
+			</form>
+
+			<section *ngIf="estimate() as quote" class="estimate">
+				<mat-divider></mat-divider>
+				<header>
+					<h3>Estimated total</h3>
+					<span class="total">{{ quote.totalCost | number: '1.2-2' }} MDL</span>
+				</header>
+				<p class="muted">
+					Duration: {{ formatDuration(quote.totalDuration) }} · Calculated at {{ formatInstant(quote.calculatedAt) }}
+				</p>
+				<ul class="breakdown">
+					<li *ngFor="let entry of quote.breakdown; trackBy: trackByBreakdown">
+						<span>
+							{{ entry.unit | titlecase }} × {{ entry.quantity }}
+						</span>
+						<span>
+							{{ entry.subtotal | number: '1.2-2' }} MDL
+						</span>
+					</li>
+				</ul>
+			</section>
+
+			<ng-template #estimatingLabel>
+				<span class="loading-inline">
+					<mat-progress-spinner diameter="18" mode="indeterminate"></mat-progress-spinner>
+					Calculating…
+				</span>
+			</ng-template>
+		</mat-card-content>
+	</mat-card>
+</section>
