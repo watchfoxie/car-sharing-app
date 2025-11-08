@@ -1,0 +1,242 @@
+.create-booking-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Loading state */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  gap: 1rem;
+}
+
+/* Error card */
+.error-card {
+  background-color: #ffebee;
+  color: #c62828;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.error-card mat-card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.error-card mat-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Header */
+.booking-content h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: #1976d2;
+}
+
+/* Booking grid */
+.booking-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Car summary card */
+.car-summary-card {
+  position: sticky;
+  top: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.car-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.car-summary-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+  color: #212121;
+}
+
+.car-subtitle {
+  color: #757575;
+  margin-bottom: 1rem;
+}
+
+.car-rate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.rate-label {
+  font-size: 1rem;
+  color: #757575;
+}
+
+.rate-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+/* Booking form card */
+.booking-form-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.booking-form-card mat-card-content {
+  padding: 1.5rem 0;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+/* Form errors */
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #c62828;
+  background-color: #ffebee;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.form-error mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Estimation loading */
+.estimation-loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  color: #757575;
+}
+
+/* Cost breakdown */
+.cost-breakdown {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.cost-breakdown h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #424242;
+}
+
+.cost-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.cost-item.discount span:last-child {
+  color: #388e3c;
+}
+
+.cost-item.surcharge span:last-child {
+  color: #d32f2f;
+}
+
+.cost-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1976d2;
+}
+
+/* Submission error */
+.submission-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #c62828;
+  background-color: #ffebee;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+/* Card actions */
+.booking-form-card mat-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.booking-form-card mat-card-actions button {
+  min-width: 140px;
+}
+
+.booking-form-card mat-card-actions button mat-icon {
+  margin-right: 0.5rem;
+}
+
+.booking-form-card mat-card-actions button mat-spinner {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 968px) {
+  .booking-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .car-summary-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-booking-container {
+    padding: 1rem;
+  }
+
+  .booking-content h1 {
+    font-size: 2rem;
+  }
+
+  .booking-form-card mat-card-actions {
+    flex-direction: column;
+  }
+
+  .booking-form-card mat-card-actions button {
+    width: 100%;
+  }
+}

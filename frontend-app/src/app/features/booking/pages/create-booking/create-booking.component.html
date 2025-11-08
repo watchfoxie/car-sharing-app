@@ -1,0 +1,189 @@
+<div class="create-booking-container">
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading car details...</p>
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (error() && !car()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon color="warn">error</mat-icon>
+        <div>
+          <h3>Cannot Create Booking</h3>
+          <p>{{ error() }}</p>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="cancel()">
+          Back to Cars
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <!-- Booking form -->
+  @if (car() && !loading()) {
+    <div class="booking-content">
+      <h1>Book Your Ride</h1>
+
+      <div class="booking-grid">
+        <!-- Left: Car summary card -->
+        <mat-card class="car-summary-card">
+          <mat-card-header>
+            <mat-card-title>Car Details</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <img 
+              [src]="car()!.imageUrl || '/assets/car-placeholder.png'" 
+              [alt]="car()!.brand + ' ' + car()!.model"
+              class="car-image">
+            
+            <h3>{{ car()!.brand }} {{ car()!.model }}</h3>
+            <p class="car-subtitle">{{ car()!.year }} • {{ car()!.category }}</p>
+            
+            <mat-divider></mat-divider>
+            
+            <div class="car-rate">
+              <span class="rate-label">Daily Rate</span>
+              <span class="rate-value">€{{ car()!.dailyRate }}/day</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Right: Booking form -->
+        <mat-card class="booking-form-card">
+          <mat-card-header>
+            <mat-card-title>Select Dates</mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content>
+            <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()">
+              <!-- Start date picker -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Start Date</mat-label>
+                <input 
+                  matInput 
+                  [matDatepicker]="startPicker"
+                  [matDatepickerFilter]="dateFilter"
+                  formControlName="startDate"
+                  placeholder="Select start date">
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+                @if (bookingForm.get('startDate')?.hasError('required') && bookingForm.get('startDate')?.touched) {
+                  <mat-error>Start date is required</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- End date picker -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>End Date</mat-label>
+                <input 
+                  matInput 
+                  [matDatepicker]="endPicker"
+                  [matDatepickerFilter]="dateFilter"
+                  formControlName="endDate"
+                  placeholder="Select end date">
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+                @if (bookingForm.get('endDate')?.hasError('required') && bookingForm.get('endDate')?.touched) {
+                  <mat-error>End date is required</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Form-level errors -->
+              @if (bookingForm.hasError('invalidDateRange')) {
+                <div class="form-error">
+                  <mat-icon>error</mat-icon>
+                  End date must be after start date
+                </div>
+              }
+              @if (bookingForm.hasError('minDuration')) {
+                <div class="form-error">
+                  <mat-icon>error</mat-icon>
+                  Minimum rental duration is 1 day
+                </div>
+              }
+
+              <mat-divider></mat-divider>
+
+              <!-- Cost estimation -->
+              @if (estimating()) {
+                <div class="estimation-loading">
+                  <mat-spinner diameter="24"></mat-spinner>
+                  <span>Calculating cost...</span>
+                </div>
+              }
+
+              @if (costEstimation() && !estimating()) {
+                <div class="cost-breakdown">
+                  <h4>Cost Breakdown</h4>
+                  
+                  <div class="cost-item">
+                    <span>Base Price ({{ costEstimation()!.durationDays }} days)</span>
+                    <span>€{{ costEstimation()!.basePrice.toFixed(2) }}</span>
+                  </div>
+
+                  @for (discount of costEstimation()!.discounts; track discount.name) {
+                    <div class="cost-item discount">
+                      <span>{{ discount.name }}</span>
+                      <span>-€{{ discount.amount.toFixed(2) }}</span>
+                    </div>
+                  }
+
+                  @for (surcharge of costEstimation()!.surcharges; track surcharge.name) {
+                    <div class="cost-item surcharge">
+                      <span>{{ surcharge.name }}</span>
+                      <span>+€{{ surcharge.amount.toFixed(2) }}</span>
+                    </div>
+                  }
+
+                  <mat-divider></mat-divider>
+
+                  <div class="cost-total">
+                    <span>Total Cost</span>
+                    <span>€{{ costEstimation()!.totalCost.toFixed(2) }}</span>
+                  </div>
+                </div>
+              }
+
+              <!-- Submission error -->
+              @if (error() && car()) {
+                <div class="submission-error">
+                  <mat-icon color="warn">error</mat-icon>
+                  <span>{{ error() }}</span>
+                </div>
+              }
+            </form>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button 
+              mat-button 
+              color="primary" 
+              (click)="cancel()"
+              [disabled]="submitting()">
+              Cancel
+            </button>
+            <button 
+              mat-raised-button 
+              color="accent" 
+              (click)="onSubmit()"
+              [disabled]="!canSubmit()">
+              @if (submitting()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                Processing...
+              } @else {
+                <mat-icon>check_circle</mat-icon>
+                Confirm Booking
+              }
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+  }
+</div>

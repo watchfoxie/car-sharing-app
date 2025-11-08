@@ -1,0 +1,398 @@
+<div class="renter-dashboard-container">
+  <div class="dashboard-header">
+    <div>
+      <h1>My Rentals</h1>
+      @if (userProfile()) {
+        <p class="welcome-text">Welcome back, {{ userProfile()!.name || userProfile()!.preferred_username }}!</p>
+      }
+    </div>
+    <button mat-raised-button color="accent" (click)="createNewBooking()">
+      <mat-icon>add</mat-icon>
+      New Booking
+    </button>
+  </div>
+
+  <!-- Loading spinner -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading your bookings...</p>
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (error()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error() }}</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Bookings content -->
+  @if (!loading() && !error()) {
+    @if (bookings().length === 0) {
+      <!-- Empty state -->
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon>event_busy</mat-icon>
+          <h2>No bookings yet</h2>
+          <p>Start exploring available cars and make your first booking!</p>
+          <button mat-raised-button color="accent" (click)="createNewBooking()">
+            Browse Cars
+          </button>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <!-- Tabs for filtering -->
+      <mat-tab-group>
+        <!-- All bookings tab -->
+        <mat-tab label="All Bookings">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-content>
+                <table mat-table [dataSource]="bookings()" class="bookings-table">
+                  <!-- Car column -->
+                  <ng-container matColumnDef="car">
+                    <th mat-header-cell *matHeaderCellDef>Car</th>
+                    <td mat-cell *matCellDef="let booking">
+                      @if (booking.car) {
+                        <div class="car-cell">
+                          <img 
+                            [src]="booking.car.imageUrl || '/assets/car-placeholder.png'" 
+                            [alt]="booking.car.brand + ' ' + booking.car.model"
+                            class="car-thumbnail">
+                          <div>
+                            <strong>{{ booking.car.brand }} {{ booking.car.model }}</strong>
+                            <span class="car-year">{{ booking.car.year }}</span>
+                          </div>
+                        </div>
+                      } @else {
+                        <span class="loading-text">Loading...</span>
+                      }
+                    </td>
+                  </ng-container>
+
+                  <!-- Dates column -->
+                  <ng-container matColumnDef="dates">
+                    <th mat-header-cell *matHeaderCellDef>Dates</th>
+                    <td mat-cell *matCellDef="let booking">
+                      <div class="dates-cell">
+                        <div>
+                          <mat-icon class="date-icon">event</mat-icon>
+                          {{ formatDate(booking.startDate) }}
+                        </div>
+                        <div>
+                          <mat-icon class="date-icon">event</mat-icon>
+                          {{ formatDate(booking.endDate) }}
+                        </div>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- Duration column -->
+                  <ng-container matColumnDef="duration">
+                    <th mat-header-cell *matHeaderCellDef>Duration</th>
+                    <td mat-cell *matCellDef="let booking">
+                      {{ calculateDuration(booking.startDate, booking.endDate) }} days
+                    </td>
+                  </ng-container>
+
+                  <!-- Cost column -->
+                  <ng-container matColumnDef="cost">
+                    <th mat-header-cell *matHeaderCellDef>Total Cost</th>
+                    <td mat-cell *matCellDef="let booking">
+                      @if (booking.totalCost) {
+                        <strong class="cost-value">€{{ booking.totalCost.toFixed(2) }}</strong>
+                      } @else {
+                        <span class="pending-text">Pending</span>
+                      }
+                    </td>
+                  </ng-container>
+
+                  <!-- Status column -->
+                  <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let booking">
+                      <mat-chip [color]="getStatusColor(booking.status!)" selected>
+                        {{ booking.status }}
+                      </mat-chip>
+                    </td>
+                  </ng-container>
+
+                  <!-- Actions column -->
+                  <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let booking">
+                      <button mat-icon-button [matTooltip]="'View Details'" (click)="viewBookingDetails(booking.id!)">
+                        <mat-icon>visibility</mat-icon>
+                      </button>
+                      @if (booking.car) {
+                        <button mat-icon-button [matTooltip]="'View Car'" (click)="viewCarDetails(booking.car.id)">
+                          <mat-icon>directions_car</mat-icon>
+                        </button>
+                      }
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Active bookings tab -->
+        <mat-tab label="Active">
+          <div class="tab-content">
+            @if (getFilteredBookings('active').length === 0) {
+              <mat-card class="empty-tab-state">
+                <mat-card-content>
+                  <p>No active bookings</p>
+                </mat-card-content>
+              </mat-card>
+            } @else {
+              <mat-card>
+                <mat-card-content>
+                  <table mat-table [dataSource]="getFilteredBookings('active')" class="bookings-table">
+                    <ng-container matColumnDef="car">
+                      <th mat-header-cell *matHeaderCellDef>Car</th>
+                      <td mat-cell *matCellDef="let booking">
+                        @if (booking.car) {
+                          <div class="car-cell">
+                            <img 
+                              [src]="booking.car.imageUrl || '/assets/car-placeholder.png'" 
+                              [alt]="booking.car.brand + ' ' + booking.car.model"
+                              class="car-thumbnail">
+                            <div>
+                              <strong>{{ booking.car.brand }} {{ booking.car.model }}</strong>
+                              <span class="car-year">{{ booking.car.year }}</span>
+                            </div>
+                          </div>
+                        } @else {
+                          <span class="loading-text">Loading...</span>
+                        }
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="dates">
+                      <th mat-header-cell *matHeaderCellDef>Dates</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <div class="dates-cell">
+                          <div><mat-icon class="date-icon">event</mat-icon>{{ formatDate(booking.startDate) }}</div>
+                          <div><mat-icon class="date-icon">event</mat-icon>{{ formatDate(booking.endDate) }}</div>
+                        </div>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="duration">
+                      <th mat-header-cell *matHeaderCellDef>Duration</th>
+                      <td mat-cell *matCellDef="let booking">{{ calculateDuration(booking.startDate, booking.endDate) }} days</td>
+                    </ng-container>
+                    <ng-container matColumnDef="cost">
+                      <th mat-header-cell *matHeaderCellDef>Total Cost</th>
+                      <td mat-cell *matCellDef="let booking">
+                        @if (booking.totalCost) {
+                          <strong class="cost-value">€{{ booking.totalCost.toFixed(2) }}</strong>
+                        } @else {
+                          <span class="pending-text">Pending</span>
+                        }
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <mat-chip [color]="getStatusColor(booking.status!)" selected>{{ booking.status }}</mat-chip>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Actions</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <button mat-icon-button [matTooltip]="'View Details'" (click)="viewBookingDetails(booking.id!)">
+                          <mat-icon>visibility</mat-icon>
+                        </button>
+                        @if (booking.car) {
+                          <button mat-icon-button [matTooltip]="'View Car'" (click)="viewCarDetails(booking.car.id)">
+                            <mat-icon>directions_car</mat-icon>
+                          </button>
+                        }
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                  </table>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Upcoming bookings tab -->
+        <mat-tab label="Upcoming">
+          <div class="tab-content">
+            @if (getFilteredBookings('upcoming').length === 0) {
+              <mat-card class="empty-tab-state">
+                <mat-card-content>
+                  <p>No upcoming bookings</p>
+                </mat-card-content>
+              </mat-card>
+            } @else {
+              <mat-card>
+                <mat-card-content>
+                  <table mat-table [dataSource]="getFilteredBookings('upcoming')" class="bookings-table">
+                    <ng-container matColumnDef="car">
+                      <th mat-header-cell *matHeaderCellDef>Car</th>
+                      <td mat-cell *matCellDef="let booking">
+                        @if (booking.car) {
+                          <div class="car-cell">
+                            <img 
+                              [src]="booking.car.imageUrl || '/assets/car-placeholder.png'" 
+                              [alt]="booking.car.brand + ' ' + booking.car.model"
+                              class="car-thumbnail">
+                            <div>
+                              <strong>{{ booking.car.brand }} {{ booking.car.model }}</strong>
+                              <span class="car-year">{{ booking.car.year }}</span>
+                            </div>
+                          </div>
+                        } @else {
+                          <span class="loading-text">Loading...</span>
+                        }
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="dates">
+                      <th mat-header-cell *matHeaderCellDef>Dates</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <div class="dates-cell">
+                          <div><mat-icon class="date-icon">event</mat-icon>{{ formatDate(booking.startDate) }}</div>
+                          <div><mat-icon class="date-icon">event</mat-icon>{{ formatDate(booking.endDate) }}</div>
+                        </div>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="duration">
+                      <th mat-header-cell *matHeaderCellDef>Duration</th>
+                      <td mat-cell *matCellDef="let booking">{{ calculateDuration(booking.startDate, booking.endDate) }} days</td>
+                    </ng-container>
+                    <ng-container matColumnDef="cost">
+                      <th mat-header-cell *matHeaderCellDef>Total Cost</th>
+                      <td mat-cell *matCellDef="let booking">
+                        @if (booking.totalCost) {
+                          <strong class="cost-value">€{{ booking.totalCost.toFixed(2) }}</strong>
+                        } @else {
+                          <span class="pending-text">Pending</span>
+                        }
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <mat-chip [color]="getStatusColor(booking.status!)" selected>{{ booking.status }}</mat-chip>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Actions</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <button mat-icon-button [matTooltip]="'View Details'" (click)="viewBookingDetails(booking.id!)">
+                          <mat-icon>visibility</mat-icon>
+                        </button>
+                        @if (booking.car) {
+                          <button mat-icon-button [matTooltip]="'View Car'" (click)="viewCarDetails(booking.car.id)">
+                            <mat-icon>directions_car</mat-icon>
+                          </button>
+                        }
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                  </table>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Past bookings tab -->
+        <mat-tab label="History">
+          <div class="tab-content">
+            @if (getFilteredBookings('past').length === 0) {
+              <mat-card class="empty-tab-state">
+                <mat-card-content>
+                  <p>No booking history</p>
+                </mat-card-content>
+              </mat-card>
+            } @else {
+              <mat-card>
+                <mat-card-content>
+                  <table mat-table [dataSource]="getFilteredBookings('past')" class="bookings-table">
+                    <ng-container matColumnDef="car">
+                      <th mat-header-cell *matHeaderCellDef>Car</th>
+                      <td mat-cell *matCellDef="let booking">
+                        @if (booking.car) {
+                          <div class="car-cell">
+                            <img 
+                              [src]="booking.car.imageUrl || '/assets/car-placeholder.png'" 
+                              [alt]="booking.car.brand + ' ' + booking.car.model"
+                              class="car-thumbnail">
+                            <div>
+                              <strong>{{ booking.car.brand }} {{ booking.car.model }}</strong>
+                              <span class="car-year">{{ booking.car.year }}</span>
+                            </div>
+                          </div>
+                        } @else {
+                          <span class="loading-text">Loading...</span>
+                        }
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="dates">
+                      <th mat-header-cell *matHeaderCellDef>Dates</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <div class="dates-cell">
+                          <div><mat-icon class="date-icon">event</mat-icon>{{ formatDate(booking.startDate) }}</div>
+                          <div><mat-icon class="date-icon">event</mat-icon>{{ formatDate(booking.endDate) }}</div>
+                        </div>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="duration">
+                      <th mat-header-cell *matHeaderCellDef>Duration</th>
+                      <td mat-cell *matCellDef="let booking">{{ calculateDuration(booking.startDate, booking.endDate) }} days</td>
+                    </ng-container>
+                    <ng-container matColumnDef="cost">
+                      <th mat-header-cell *matHeaderCellDef>Total Cost</th>
+                      <td mat-cell *matCellDef="let booking">
+                        @if (booking.totalCost) {
+                          <strong class="cost-value">€{{ booking.totalCost.toFixed(2) }}</strong>
+                        } @else {
+                          <span class="pending-text">Pending</span>
+                        }
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <mat-chip [color]="getStatusColor(booking.status!)" selected>{{ booking.status }}</mat-chip>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Actions</th>
+                      <td mat-cell *matCellDef="let booking">
+                        <button mat-icon-button [matTooltip]="'View Details'" (click)="viewBookingDetails(booking.id!)">
+                          <mat-icon>visibility</mat-icon>
+                        </button>
+                        @if (booking.car) {
+                          <button mat-icon-button [matTooltip]="'View Car'" (click)="viewCarDetails(booking.car.id)">
+                            <mat-icon>directions_car</mat-icon>
+                          </button>
+                        }
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                  </table>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    }
+  }
+</div>

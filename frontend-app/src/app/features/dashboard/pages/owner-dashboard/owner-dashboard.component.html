@@ -1,0 +1,352 @@
+<div class="owner-dashboard-container">
+  <div class="dashboard-header">
+    <div>
+      <h1>My Cars</h1>
+      @if (userProfile()) {
+        <p class="welcome-text">Manage your car fleet</p>
+      }
+    </div>
+    <button mat-raised-button color="accent" (click)="createNewCar()">
+      <mat-icon>add</mat-icon>
+      Add New Car
+    </button>
+  </div>
+
+  <!-- Statistics cards -->
+  @if (!loading() && !error() && cars().length > 0) {
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <mat-icon class="stat-icon available">directions_car</mat-icon>
+          <div class="stat-info">
+            <h3>{{ getCountByStatus('AVAILABLE') }}</h3>
+            <p>Available</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <mat-icon class="stat-icon rented">event_available</mat-icon>
+          <div class="stat-info">
+            <h3>{{ getCountByStatus('RENTED') }}</h3>
+            <p>Currently Rented</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <mat-icon class="stat-icon maintenance">build</mat-icon>
+          <div class="stat-info">
+            <h3>{{ getCountByStatus('MAINTENANCE') }}</h3>
+            <p>In Maintenance</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <mat-icon class="stat-icon total">garage</mat-icon>
+          <div class="stat-info">
+            <h3>{{ cars().length }}</h3>
+            <p>Total Cars</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+
+  <!-- Loading spinner -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading your cars...</p>
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (error()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error() }}</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Cars content -->
+  @if (!loading() && !error()) {
+    @if (cars().length === 0) {
+      <!-- Empty state -->
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon>directions_car_filled</mat-icon>
+          <h2>No cars yet</h2>
+          <p>Start by adding your first car to the fleet!</p>
+          <button mat-raised-button color="accent" (click)="createNewCar()">
+            Add First Car
+          </button>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <!-- Tabs for filtering -->
+      <mat-tab-group>
+        <!-- All cars tab -->
+        <mat-tab label="All Cars ({{ cars().length }})">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-content>
+                <table mat-table [dataSource]="cars()" class="cars-table">
+                  <!-- Image column -->
+                  <ng-container matColumnDef="image">
+                    <th mat-header-cell *matHeaderCellDef>Image</th>
+                    <td mat-cell *matCellDef="let car">
+                      <img 
+                        [src]="car.imageUrl || '/assets/car-placeholder.png'" 
+                        [alt]="car.brand + ' ' + car.model"
+                        class="car-thumbnail">
+                    </td>
+                  </ng-container>
+
+                  <!-- Car column -->
+                  <ng-container matColumnDef="car">
+                    <th mat-header-cell *matHeaderCellDef>Car</th>
+                    <td mat-cell *matCellDef="let car">
+                      <div class="car-info">
+                        <strong>{{ car.brand }} {{ car.model }}</strong>
+                        <span class="car-details">{{ car.year }} • {{ car.registrationNumber }}</span>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- Category column -->
+                  <ng-container matColumnDef="category">
+                    <th mat-header-cell *matHeaderCellDef>Category</th>
+                    <td mat-cell *matCellDef="let car">
+                      {{ car.category }}
+                    </td>
+                  </ng-container>
+
+                  <!-- Daily rate column -->
+                  <ng-container matColumnDef="dailyRate">
+                    <th mat-header-cell *matHeaderCellDef>Daily Rate</th>
+                    <td mat-cell *matCellDef="let car">
+                      <strong class="rate-value">€{{ car.dailyRate }}</strong>
+                    </td>
+                  </ng-container>
+
+                  <!-- Status column -->
+                  <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let car">
+                      <mat-chip [color]="getStatusColor(car.status)" selected>
+                        {{ car.status }}
+                      </mat-chip>
+                    </td>
+                  </ng-container>
+
+                  <!-- Actions column -->
+                  <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let car">
+                      <button mat-icon-button matTooltip="View Details" (click)="viewCarDetails(car.id)">
+                        <mat-icon>visibility</mat-icon>
+                      </button>
+                      <button mat-icon-button matTooltip="Edit Car" (click)="editCar(car.id)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button matTooltip="Delete Car" color="warn" (click)="deleteCar(car)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Available cars tab -->
+        <mat-tab label="Available ({{ getCountByStatus('AVAILABLE') }})">
+          <div class="tab-content">
+            @if (getFilteredCars('AVAILABLE').length === 0) {
+              <mat-card class="empty-tab-state">
+                <mat-card-content>
+                  <p>No available cars</p>
+                </mat-card-content>
+              </mat-card>
+            } @else {
+              <mat-card>
+                <mat-card-content>
+                  <table mat-table [dataSource]="getFilteredCars('AVAILABLE')" class="cars-table">
+                    <ng-container matColumnDef="image">
+                      <th mat-header-cell *matHeaderCellDef>Image</th>
+                      <td mat-cell *matCellDef="let car">
+                        <img [src]="car.imageUrl || '/assets/car-placeholder.png'" [alt]="car.brand + ' ' + car.model" class="car-thumbnail">
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="car">
+                      <th mat-header-cell *matHeaderCellDef>Car</th>
+                      <td mat-cell *matCellDef="let car">
+                        <div class="car-info">
+                          <strong>{{ car.brand }} {{ car.model }}</strong>
+                          <span class="car-details">{{ car.year }} • {{ car.registrationNumber }}</span>
+                        </div>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="category">
+                      <th mat-header-cell *matHeaderCellDef>Category</th>
+                      <td mat-cell *matCellDef="let car">{{ car.category }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="dailyRate">
+                      <th mat-header-cell *matHeaderCellDef>Daily Rate</th>
+                      <td mat-cell *matCellDef="let car"><strong class="rate-value">€{{ car.dailyRate }}</strong></td>
+                    </ng-container>
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let car">
+                        <mat-chip [color]="getStatusColor(car.status)" selected>{{ car.status }}</mat-chip>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Actions</th>
+                      <td mat-cell *matCellDef="let car">
+                        <button mat-icon-button matTooltip="View Details" (click)="viewCarDetails(car.id)"><mat-icon>visibility</mat-icon></button>
+                        <button mat-icon-button matTooltip="Edit Car" (click)="editCar(car.id)"><mat-icon>edit</mat-icon></button>
+                        <button mat-icon-button matTooltip="Delete Car" color="warn" (click)="deleteCar(car)"><mat-icon>delete</mat-icon></button>
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                  </table>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Rented cars tab -->
+        <mat-tab label="Rented ({{ getCountByStatus('RENTED') }})">
+          <div class="tab-content">
+            @if (getFilteredCars('RENTED').length === 0) {
+              <mat-card class="empty-tab-state">
+                <mat-card-content>
+                  <p>No rented cars</p>
+                </mat-card-content>
+              </mat-card>
+            } @else {
+              <mat-card>
+                <mat-card-content>
+                  <table mat-table [dataSource]="getFilteredCars('RENTED')" class="cars-table">
+                    <ng-container matColumnDef="image">
+                      <th mat-header-cell *matHeaderCellDef>Image</th>
+                      <td mat-cell *matCellDef="let car">
+                        <img [src]="car.imageUrl || '/assets/car-placeholder.png'" [alt]="car.brand + ' ' + car.model" class="car-thumbnail">
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="car">
+                      <th mat-header-cell *matHeaderCellDef>Car</th>
+                      <td mat-cell *matCellDef="let car">
+                        <div class="car-info">
+                          <strong>{{ car.brand }} {{ car.model }}</strong>
+                          <span class="car-details">{{ car.year }} • {{ car.registrationNumber }}</span>
+                        </div>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="category">
+                      <th mat-header-cell *matHeaderCellDef>Category</th>
+                      <td mat-cell *matCellDef="let car">{{ car.category }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="dailyRate">
+                      <th mat-header-cell *matHeaderCellDef>Daily Rate</th>
+                      <td mat-cell *matCellDef="let car"><strong class="rate-value">€{{ car.dailyRate }}</strong></td>
+                    </ng-container>
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let car">
+                        <mat-chip [color]="getStatusColor(car.status)" selected>{{ car.status }}</mat-chip>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Actions</th>
+                      <td mat-cell *matCellDef="let car">
+                        <button mat-icon-button matTooltip="View Details" (click)="viewCarDetails(car.id)"><mat-icon>visibility</mat-icon></button>
+                        <button mat-icon-button matTooltip="Edit Car" (click)="editCar(car.id)"><mat-icon>edit</mat-icon></button>
+                        <button mat-icon-button matTooltip="Delete Car" color="warn" (click)="deleteCar(car)"><mat-icon>delete</mat-icon></button>
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                  </table>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Maintenance cars tab -->
+        <mat-tab label="Maintenance ({{ getCountByStatus('MAINTENANCE') }})">
+          <div class="tab-content">
+            @if (getFilteredCars('MAINTENANCE').length === 0) {
+              <mat-card class="empty-tab-state">
+                <mat-card-content>
+                  <p>No cars in maintenance</p>
+                </mat-card-content>
+              </mat-card>
+            } @else {
+              <mat-card>
+                <mat-card-content>
+                  <table mat-table [dataSource]="getFilteredCars('MAINTENANCE')" class="cars-table">
+                    <ng-container matColumnDef="image">
+                      <th mat-header-cell *matHeaderCellDef>Image</th>
+                      <td mat-cell *matCellDef="let car">
+                        <img [src]="car.imageUrl || '/assets/car-placeholder.png'" [alt]="car.brand + ' ' + car.model" class="car-thumbnail">
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="car">
+                      <th mat-header-cell *matHeaderCellDef>Car</th>
+                      <td mat-cell *matCellDef="let car">
+                        <div class="car-info">
+                          <strong>{{ car.brand }} {{ car.model }}</strong>
+                          <span class="car-details">{{ car.year }} • {{ car.registrationNumber }}</span>
+                        </div>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="category">
+                      <th mat-header-cell *matHeaderCellDef>Category</th>
+                      <td mat-cell *matCellDef="let car">{{ car.category }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="dailyRate">
+                      <th mat-header-cell *matHeaderCellDef>Daily Rate</th>
+                      <td mat-cell *matCellDef="let car"><strong class="rate-value">€{{ car.dailyRate }}</strong></td>
+                    </ng-container>
+                    <ng-container matColumnDef="status">
+                      <th mat-header-cell *matHeaderCellDef>Status</th>
+                      <td mat-cell *matCellDef="let car">
+                        <mat-chip [color]="getStatusColor(car.status)" selected>{{ car.status }}</mat-chip>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Actions</th>
+                      <td mat-cell *matCellDef="let car">
+                        <button mat-icon-button matTooltip="View Details" (click)="viewCarDetails(car.id)"><mat-icon>visibility</mat-icon></button>
+                        <button mat-icon-button matTooltip="Edit Car" (click)="editCar(car.id)"><mat-icon>edit</mat-icon></button>
+                        <button mat-icon-button matTooltip="Delete Car" color="warn" (click)="deleteCar(car)"><mat-icon>delete</mat-icon></button>
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                  </table>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    }
+  }
+</div>

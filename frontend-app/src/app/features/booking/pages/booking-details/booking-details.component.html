@@ -1,0 +1,200 @@
+<div class="booking-details-container">
+  <!-- Loading spinner -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading booking details...</p>
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (error()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon color="warn">error</mat-icon>
+        <div>
+          <h3>Error Loading Booking</h3>
+          <p>{{ error() }}</p>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="goBack()">
+          Back to Dashboard
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <!-- Booking details -->
+  @if (booking() && !loading() && !error()) {
+    <div class="details-content">
+      <!-- Back button -->
+      <button mat-button color="primary" (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Dashboard
+      </button>
+
+      <h1>Booking Details</h1>
+
+      <div class="details-grid">
+        <!-- Left: Booking info -->
+        <mat-card class="booking-info-card">
+          <mat-card-header>
+            <mat-card-title>Rental Information</mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content>
+            <!-- Status badge -->
+            <div class="status-section">
+              <span class="status-label">Status:</span>
+              <mat-chip-set>
+                <mat-chip [color]="getStatusColor(booking()!.status!)" selected>
+                  {{ booking()!.status }}
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Booking ID -->
+            <div class="info-row">
+              <mat-icon>confirmation_number</mat-icon>
+              <div>
+                <span class="info-label">Booking ID</span>
+                <span class="info-value">{{ booking()!.id }}</span>
+              </div>
+            </div>
+
+            <!-- Start date -->
+            <div class="info-row">
+              <mat-icon>event</mat-icon>
+              <div>
+                <span class="info-label">Start Date</span>
+                <span class="info-value">{{ startDateLocal() }}</span>
+              </div>
+            </div>
+
+            <!-- End date -->
+            <div class="info-row">
+              <mat-icon>event</mat-icon>
+              <div>
+                <span class="info-label">End Date</span>
+                <span class="info-value">{{ endDateLocal() }}</span>
+              </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="info-row">
+              <mat-icon>schedule</mat-icon>
+              <div>
+                <span class="info-label">Duration</span>
+                <span class="info-value">{{ durationDays() }} days</span>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Total cost -->
+            @if (booking()!.totalCost) {
+              <div class="cost-section">
+                <span class="cost-label">Total Cost</span>
+                <span class="cost-value">€{{ booking()!.totalCost.toFixed(2) }}</span>
+              </div>
+            }
+
+            <!-- Created at -->
+            @if (booking()!.createdAt) {
+              <div class="timestamp">
+                <mat-icon>access_time</mat-icon>
+                <span>Created: {{ booking()!.createdAt | date: 'medium' }}</span>
+              </div>
+            }
+          </mat-card-content>
+
+          @if (canCancel()) {
+            <mat-card-actions>
+              <button 
+                mat-raised-button 
+                color="warn" 
+                (click)="cancelBooking()"
+                [disabled]="cancelling()">
+                @if (cancelling()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                  Cancelling...
+                } @else {
+                  <mat-icon>cancel</mat-icon>
+                  Cancel Booking
+                }
+              </button>
+            </mat-card-actions>
+          }
+        </mat-card>
+
+        <!-- Right: Car info -->
+        @if (car()) {
+          <mat-card class="car-info-card">
+            <mat-card-header>
+              <mat-card-title>Car Details</mat-card-title>
+            </mat-card-header>
+
+            <mat-card-content>
+              <img 
+                [src]="car()!.imageUrl || '/assets/car-placeholder.png'" 
+                [alt]="car()!.brand + ' ' + car()!.model"
+                class="car-image">
+
+              <h3>{{ car()!.brand }} {{ car()!.model }}</h3>
+              <p class="car-subtitle">{{ car()!.year }} • {{ car()!.category }}</p>
+
+              <mat-divider></mat-divider>
+
+              <!-- Car specifications -->
+              <div class="specs-grid">
+                @if (car()!.transmission) {
+                  <div class="spec-item">
+                    <mat-icon>settings</mat-icon>
+                    <span>{{ car()!.transmission }}</span>
+                  </div>
+                }
+
+                @if (car()!.fuelType) {
+                  <div class="spec-item">
+                    <mat-icon>local_gas_station</mat-icon>
+                    <span>{{ car()!.fuelType }}</span>
+                  </div>
+                }
+
+                @if (car()!.seats) {
+                  <div class="spec-item">
+                    <mat-icon>airline_seat_recline_normal</mat-icon>
+                    <span>{{ car()!.seats }} seats</span>
+                  </div>
+                }
+
+                @if (car()!.color) {
+                  <div class="spec-item">
+                    <mat-icon>palette</mat-icon>
+                    <span>{{ car()!.color }}</span>
+                  </div>
+                }
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="rate-info">
+                <span class="rate-label">Daily Rate</span>
+                <span class="rate-value">€{{ car()!.dailyRate }}/day</span>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-button color="primary" [routerLink]="['/cars', car()!.id]">
+                View Car Details
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
+  }
+</div>

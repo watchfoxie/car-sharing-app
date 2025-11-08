@@ -1,0 +1,133 @@
+<mat-sidenav-container class="sidenav-container">
+  <!-- Side navigation (mobile only) -->
+  <mat-sidenav #sidenav [opened]="sidenavOpened()" mode="over" class="sidenav">
+    <mat-nav-list>
+      <a mat-list-item routerLink="/cars" routerLinkActive="active-link" (click)="closeSidenav()">
+        <mat-icon>directions_car</mat-icon>
+        <span>Browse Cars</span>
+      </a>
+      
+      @if (authService.isAuthenticated()) {
+        @if (authService.isRenter()) {
+          <a mat-list-item routerLink="/booking/new" routerLinkActive="active-link" (click)="closeSidenav()">
+            <mat-icon>event</mat-icon>
+            <span>New Booking</span>
+          </a>
+          <a mat-list-item routerLink="/dashboard/renter" routerLinkActive="active-link" (click)="closeSidenav()">
+            <mat-icon>dashboard</mat-icon>
+            <span>My Bookings</span>
+          </a>
+          <a mat-list-item routerLink="/feedback/my" routerLinkActive="active-link" (click)="closeSidenav()">
+            <mat-icon>rate_review</mat-icon>
+            <span>My Reviews</span>
+          </a>
+        }
+        
+        @if (authService.isOwner()) {
+          <a mat-list-item routerLink="/dashboard/owner" routerLinkActive="active-link" (click)="closeSidenav()">
+            <mat-icon>business</mat-icon>
+            <span>My Fleet</span>
+          </a>
+        }
+        
+        <mat-divider></mat-divider>
+        <a mat-list-item (click)="logout(); closeSidenav()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </a>
+      } @else {
+        <mat-divider></mat-divider>
+        <a mat-list-item routerLink="/auth/login" routerLinkActive="active-link" (click)="closeSidenav()">
+          <mat-icon>login</mat-icon>
+          <span>Login</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <!-- Top toolbar -->
+    <mat-toolbar color="primary" class="toolbar">
+      <button mat-icon-button class="sidenav-toggle" (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">{{ title() }}</span>
+      
+      <!-- Desktop navigation -->
+      <div class="toolbar-spacer"></div>
+      <nav class="toolbar-nav">
+        <a mat-button routerLink="/cars" routerLinkActive="active-link">
+          <mat-icon>directions_car</mat-icon>
+          Cars
+        </a>
+        
+        @if (authService.isAuthenticated()) {
+          @if (authService.isRenter()) {
+            <a mat-button routerLink="/booking/new" routerLinkActive="active-link">
+              <mat-icon>event</mat-icon>
+              Book Now
+            </a>
+            <a mat-button routerLink="/dashboard/renter" routerLinkActive="active-link">
+              <mat-icon>dashboard</mat-icon>
+              My Bookings
+            </a>
+          }
+          
+          @if (authService.isOwner()) {
+            <a mat-button routerLink="/dashboard/owner" routerLinkActive="active-link">
+              <mat-icon>business</mat-icon>
+              My Fleet
+            </a>
+          }
+          
+          <!-- User profile menu -->
+          <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+            <mat-icon>account_circle</mat-icon>
+          </button>
+          <mat-menu #userMenu="matMenu">
+            <div class="user-profile-info">
+              <p class="user-name">{{ authService.userProfile()?.name || 'User' }}</p>
+              <p class="user-email">{{ authService.userProfile()?.email }}</p>
+              <p class="user-roles">
+                @for (role of authService.roles(); track role) {
+                  <span class="role-badge">{{ role }}</span>
+                }
+              </p>
+            </div>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="logout()">
+              <mat-icon>logout</mat-icon>
+              <span>Logout</span>
+            </button>
+          </mat-menu>
+        } @else {
+          <a mat-raised-button routerLink="/auth/login" routerLinkActive="active-link" class="login-button">
+            <mat-icon>login</mat-icon>
+            Login
+          </a>
+        }
+      </nav>
+    </mat-toolbar>
+
+    <!-- Main content area -->
+    <div class="content-container">
+      <router-outlet />
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; {{ currentYear }} Car Sharing. All rights reserved.</p>
+        <p>
+          <a routerLink="/cars">Browse Cars</a> |
+          @if (authService.isAuthenticated()) {
+            <a routerLink="/dashboard/renter">My Account</a> |
+          }
+          <a href="mailto:support@carsharing.com">Contact Support</a>
+        </p>
+      </div>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+

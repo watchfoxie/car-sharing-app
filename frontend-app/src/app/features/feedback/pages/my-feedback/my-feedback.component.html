@@ -1,0 +1,109 @@
+<div class="my-feedback-container">
+  <h1>My Feedback</h1>
+
+  <!-- Loading spinner -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading your feedback...</p>
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (errorMessage()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <p class="error-message">{{ errorMessage() }}</p>
+        <button mat-raised-button color="primary" (click)="loadMyFeedback()">
+          <mat-icon>refresh</mat-icon>
+          Retry
+        </button>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && !errorMessage() && feedbackList().length === 0) {
+    <mat-card class="empty-state">
+      <mat-card-content>
+        <mat-icon class="empty-icon">comment</mat-icon>
+        <h2>No Feedback Yet</h2>
+        <p>You haven't submitted any feedback for rented cars.</p>
+        <p>After completing a rental, you can leave feedback to help others.</p>
+        <a mat-raised-button color="primary" routerLink="/cars">
+          <mat-icon>directions_car</mat-icon>
+          Browse Cars
+        </a>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Feedback list -->
+  @if (!loading() && !errorMessage() && feedbackList().length > 0) {
+    <div class="feedback-list">
+      @for (feedback of feedbackList(); track feedback.id) {
+        <mat-card class="feedback-card">
+          <mat-card-header>
+            <mat-card-title>
+              <a [routerLink]="['/cars', feedback.carsId]" class="car-link">
+                Car ID: {{ feedback.carsId }}
+              </a>
+            </mat-card-title>
+            <mat-card-subtitle>
+              {{ formatDate(feedback.createdDate) }}
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <!-- Rating stars -->
+            <div class="rating-stars">
+              @for (star of getRatingStars(feedback.rating); track $index) {
+                <mat-icon class="star-icon">{{ star }}</mat-icon>
+              }
+              <span class="rating-text">({{ feedback.rating }}/5)</span>
+            </div>
+
+            <!-- Comment -->
+            @if (feedback.comment) {
+              <p class="comment">{{ feedback.comment }}</p>
+            } @else {
+              <p class="no-comment">No comment provided</p>
+            }
+
+            <!-- Metadata chips -->
+            <div class="metadata-chips">
+              @if (feedback.lastModifiedDate !== feedback.createdDate) {
+                <mat-chip class="edited-chip">
+                  <mat-icon>edit</mat-icon>
+                  Edited
+                </mat-chip>
+              }
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <a
+              mat-button
+              color="primary"
+              [routerLink]="['/cars', feedback.carsId]"
+            >
+              <mat-icon>visibility</mat-icon>
+              View Car
+            </a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+
+    <!-- Paginator -->
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+      aria-label="Select page of feedback"
+    >
+    </mat-paginator>
+  }
+</div>

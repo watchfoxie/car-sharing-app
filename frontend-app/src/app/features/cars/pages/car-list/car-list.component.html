@@ -1,0 +1,162 @@
+<div class="car-list-container">
+  <!-- Header with filters -->
+  <div class="header-section">
+    <h1>Available Cars</h1>
+    
+    <!-- Filter form -->
+    <form [formGroup]="filterForm" class="filter-section">
+      <mat-card class="filter-card">
+        <mat-card-content>
+          <div class="filter-grid">
+            <!-- Brand filter -->
+            <mat-form-field appearance="outline">
+              <mat-label>Brand</mat-label>
+              <mat-select formControlName="brand">
+                <mat-option value="">All Brands</mat-option>
+                @for (brand of brands(); track brand) {
+                  <mat-option [value]="brand">{{ brand }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Category filter -->
+            <mat-form-field appearance="outline">
+              <mat-label>Category</mat-label>
+              <mat-select formControlName="category">
+                <mat-option value="">All Categories</mat-option>
+                @for (category of categories(); track category) {
+                  <mat-option [value]="category">{{ category }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Min price filter -->
+            <mat-form-field appearance="outline">
+              <mat-label>Min Price (€/day)</mat-label>
+              <input matInput type="number" formControlName="minPrice" min="0">
+            </mat-form-field>
+
+            <!-- Max price filter -->
+            <mat-form-field appearance="outline">
+              <mat-label>Max Price (€/day)</mat-label>
+              <input matInput type="number" formControlName="maxPrice" min="0">
+            </mat-form-field>
+
+            <!-- Sort dropdown -->
+            <mat-form-field appearance="outline">
+              <mat-label>Sort By</mat-label>
+              <mat-select formControlName="sort">
+                @for (option of sortOptions; track option.label) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Clear filters button -->
+            <button mat-raised-button color="accent" (click)="clearFilters()" type="button">
+              <mat-icon>clear</mat-icon>
+              Clear Filters
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
+  </div>
+
+  <!-- Loading spinner -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading cars...</p>
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (error()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error() }}</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Car grid -->
+  @if (!loading() && !error()) {
+    @if (cars().length === 0) {
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon>directions_car_filled</mat-icon>
+          <h2>No cars found</h2>
+          <p>Try adjusting your filters or check back later.</p>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <div class="car-grid">
+        @for (car of cars(); track trackByCar($index, car)) {
+          <mat-card class="car-card">
+            <!-- Car image -->
+            <div class="car-image" 
+                 [style.background-image]="car.imageUrl ? 'url(' + car.imageUrl + ')' : 'url(/assets/car-placeholder.png)'">
+            </div>
+
+            <mat-card-content>
+              <!-- Car title -->
+              <h3 class="car-title">{{ car.brand }} {{ car.model }}</h3>
+              
+              <!-- Car details chips -->
+              <div class="car-details">
+                <mat-chip-set>
+                  <mat-chip>{{ car.year }}</mat-chip>
+                  <mat-chip>{{ car.category }}</mat-chip>
+                  @if (car.transmission) {
+                    <mat-chip>{{ car.transmission }}</mat-chip>
+                  }
+                  @if (car.fuelType) {
+                    <mat-chip>{{ car.fuelType }}</mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+
+              <!-- Additional info -->
+              @if (car.seats) {
+                <p class="car-info">
+                  <mat-icon>airline_seat_recline_normal</mat-icon>
+                  {{ car.seats }} seats
+                </p>
+              }
+
+              <!-- Price -->
+              <p class="car-price">€{{ car.dailyRate }}<span>/day</span></p>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-button color="primary" (click)="viewCarDetails(car.id)">
+                View Details
+              </button>
+              @if (isRenter()) {
+                <button mat-raised-button color="accent" (click)="bookCar(car.id)">
+                  Book Now
+                </button>
+              } @else if (!isAuthenticated()) {
+                <button mat-raised-button color="accent" (click)="bookCar(car.id)">
+                  Login to Book
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize()"
+        [pageIndex]="page()"
+        [pageSizeOptions]="[6, 12, 24, 48]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    }
+  }
+</div>

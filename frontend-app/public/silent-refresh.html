@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Silent Refresh</title>
+</head>
+<body>
+  <script>
+    /**
+     * Silent refresh callback.
+     * 
+     * This page is loaded in a hidden iframe to renew tokens without user interaction.
+     * angular-oauth2-oidc handles the token exchange automatically.
+     * 
+     * Do not modify this file unless you know what you're doing.
+     */
+    parent.postMessage(location.hash, location.origin);
+  </script>
+</body>
+</html>

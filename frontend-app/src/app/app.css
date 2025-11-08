@@ -1,0 +1,167 @@
+/**
+ * Root application styles with Material Design layout.
+ * 
+ * Layout structure:
+ * - Full-height sidenav container
+ * - Fixed toolbar at top
+ * - Scrollable content area
+ * - Footer at bottom
+ * 
+ * Responsive:
+ * - Mobile (<768px): sidenav toggle visible, desktop nav hidden
+ * - Desktop (>=768px): sidenav hidden, desktop nav visible
+ */
+
+/* Sidenav container fills viewport height */
+.sidenav-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidenav width and styling */
+.sidenav {
+  width: 250px;
+}
+
+.sidenav mat-icon {
+  margin-right: 12px;
+}
+
+/* Toolbar styling */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.toolbar-title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar-nav mat-icon {
+  margin-right: 4px;
+}
+
+.login-button {
+  margin-left: 8px;
+}
+
+/* Active link styling */
+.active-link {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* User profile menu */
+.user-menu-button {
+  margin-left: 8px;
+}
+
+.user-profile-info {
+  padding: 16px;
+  max-width: 250px;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.user-email {
+  margin: 4px 0 8px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.user-roles {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Sidenav toggle - visible only on mobile */
+.sidenav-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidenav-toggle {
+    display: inline-block;
+  }
+  
+  .toolbar-nav {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .sidenav-toggle {
+    display: none;
+  }
+}
+
+/* Content container with padding and min-height */
+.content-container {
+  flex: 1 1 auto;
+  padding: 24px;
+  min-height: calc(100vh - 64px - 80px); /* viewport - toolbar - footer */
+  background-color: #f5f5f5;
+}
+
+@media (max-width: 768px) {
+  .content-container {
+    padding: 16px;
+  }
+}
+
+/* Footer styling */
+.footer {
+  background-color: #424242;
+  color: white;
+  padding: 24px;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-content p {
+  margin: 8px 0;
+}
+
+.footer-content a {
+  color: #90caf9;
+  text-decoration: none;
+  margin: 0 8px;
+}
+
+.footer-content a:hover {
+  text-decoration: underline;
+}
+

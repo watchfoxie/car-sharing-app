@@ -1,0 +1,157 @@
+<div class="car-details-container">
+  <!-- Loading spinner -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading car details...</p>
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (error()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon color="warn">error</mat-icon>
+        <div>
+          <h3>Error Loading Car</h3>
+          <p>{{ error() }}</p>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="goBack()">
+          Back to Car List
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <!-- Car details -->
+  @if (car() && !loading() && !error()) {
+    <div class="details-content">
+      <!-- Back button -->
+      <button mat-button color="primary" (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Cars
+      </button>
+
+      <div class="details-grid">
+        <!-- Left column: Image -->
+        <div class="image-section">
+          <img 
+            [src]="car()!.imageUrl || '/assets/car-placeholder.png'" 
+            [alt]="car()!.brand + ' ' + car()!.model"
+            class="car-image">
+        </div>
+
+        <!-- Right column: Details -->
+        <div class="info-section">
+          <mat-card class="info-card">
+            <mat-card-header>
+              <mat-card-title>
+                {{ car()!.brand }} {{ car()!.model }}
+              </mat-card-title>
+              <mat-card-subtitle>
+                {{ car()!.year }} • {{ car()!.category }}
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <!-- Status badge -->
+              <div class="status-section">
+                <mat-chip-set>
+                  <mat-chip [color]="getStatusColor(car()!.status)" selected>
+                    {{ car()!.status }}
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <!-- Price -->
+              <div class="price-section">
+                <h2 class="price">€{{ car()!.dailyRate }}</h2>
+                <span class="price-label">per day</span>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <!-- Specifications -->
+              <div class="specs-section">
+                <h3>Specifications</h3>
+                
+                <div class="spec-grid">
+                  @if (car()!.transmission) {
+                    <div class="spec-item">
+                      <mat-icon>settings</mat-icon>
+                      <div>
+                        <span class="spec-label">Transmission</span>
+                        <span class="spec-value">{{ car()!.transmission }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  @if (car()!.fuelType) {
+                    <div class="spec-item">
+                      <mat-icon>local_gas_station</mat-icon>
+                      <div>
+                        <span class="spec-label">Fuel Type</span>
+                        <span class="spec-value">{{ car()!.fuelType }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  @if (car()!.seats) {
+                    <div class="spec-item">
+                      <mat-icon>airline_seat_recline_normal</mat-icon>
+                      <div>
+                        <span class="spec-label">Seats</span>
+                        <span class="spec-value">{{ car()!.seats }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  @if (car()!.color) {
+                    <div class="spec-item">
+                      <mat-icon>palette</mat-icon>
+                      <div>
+                        <span class="spec-label">Color</span>
+                        <span class="spec-value">{{ car()!.color }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  <div class="spec-item">
+                    <mat-icon>confirmation_number</mat-icon>
+                    <div>
+                      <span class="spec-label">Registration</span>
+                      <span class="spec-value">{{ car()!.registrationNumber }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions class="action-buttons">
+              @if (canBook()) {
+                <button mat-raised-button color="accent" (click)="bookCar()" class="book-button">
+                  <mat-icon>event_available</mat-icon>
+                  Book This Car
+                </button>
+              } @else if (!isAuthenticated()) {
+                <button mat-raised-button color="accent" (click)="bookCar()" class="book-button">
+                  <mat-icon>login</mat-icon>
+                  Login to Book
+                </button>
+              } @else if (car()!.status !== 'AVAILABLE') {
+                <button mat-raised-button disabled class="book-button">
+                  <mat-icon>block</mat-icon>
+                  Not Available
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  }
+</div>
