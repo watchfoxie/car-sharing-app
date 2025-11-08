@@ -6,9 +6,9 @@ spring:
   config:
     import: optional:configserver:${CONFIG_SERVER_URI:http://localhost:8888}
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/carsharing}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/car_sharing}
     username: ${DB_USERNAME:feedback_service}
-    password: ${DB_PASSWORD:changeme}
+    password: ${DB_PASSWORD:feedback_pass}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -24,7 +24,7 @@ spring:
     enabled: true
     schemas: feedback
     baseline-on-migrate: true
-    locations: classpath:db/migration/feedback
+    locations: classpath:db/migration
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
@@ -38,8 +38,6 @@ spring:
 
 server:
   port: 8085
-  servlet:
-    context-path: /api/feedback
 
 eureka:
   client:
