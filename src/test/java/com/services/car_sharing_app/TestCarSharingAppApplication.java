@@ -1,11 +1,12 @@
 package com.services.car_sharing_app;
 
-import org.springframework.boot.SpringApplication;
+/**
+ * Placeholder to keep the aggregator module compilable. Look at
+ * bootstrap-app/TestCarSharingAppApplication for the executable variant.
+ */
+public final class TestCarSharingAppApplication {
 
-public class TestCarSharingAppApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.from(CarSharingAppApplication::main).with(TestcontainersConfiguration.class).run(args);
+	private TestCarSharingAppApplication() {
 	}
 
 }

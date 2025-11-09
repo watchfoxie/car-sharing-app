@@ -20,6 +20,7 @@
     <description>Car Sharing app for vehicles rent service - Multi-module aggregator</description>
     
     <modules>
+        <module>bootstrap-app</module>
         <module>common-libs</module>
         <module>api-gateway</module>
         <module>discovery-service</module>

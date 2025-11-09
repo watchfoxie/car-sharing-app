@@ -1,15 +1,9 @@
 package com.services.car_sharing_app;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-
-@Import(TestcontainersConfiguration.class)
-@SpringBootTest
+/**
+ * Placeholder to keep the aggregator module compilable. Integration tests now
+ * live in the bootstrap-app module.
+ */
 class CarSharingAppApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
 
 }

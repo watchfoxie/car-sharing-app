@@ -1,13 +1,13 @@
 package com.services.car_sharing_app;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+/**
+ * Placeholder to keep the aggregator module compilable. The actual Spring Boot
+ * entry point lives in the bootstrap-app module.
+ */
+public final class CarSharingAppApplication {
 
-@SpringBootApplication
-public class CarSharingAppApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(CarSharingAppApplication.class, args);
+	private CarSharingAppApplication() {
+		// utility class
 	}
 
 }
