@@ -48,6 +48,9 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class RentalService {
 
+    private static final String RENTAL_NOT_FOUND_PREFIX = "Rental with ID ";
+    private static final String RENTAL_NOT_FOUND_SUFFIX = " not found";
+
     private final RentalRepository rentalRepository;
     private final RentalMapper rentalMapper;
     // TODO: Inject PricingServiceClient in future phase (Faza 12)
@@ -68,7 +71,7 @@ public class RentalService {
         log.debug("Fetching rental by ID: {} for account: {}", rentalId, accountId);
 
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rental with ID " + rentalId + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(RENTAL_NOT_FOUND_PREFIX + rentalId + RENTAL_NOT_FOUND_SUFFIX));
 
         // Access control: only renter can view (owner check requires car-service integration, future phase)
         if (!rental.isOwnedBy(accountId)) {
@@ -200,7 +203,7 @@ public class RentalService {
         log.info("Updating pickup for rental: {}, renter: {}", rentalId, renterId);
 
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rental with ID " + rentalId + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(RENTAL_NOT_FOUND_PREFIX + rentalId + RENTAL_NOT_FOUND_SUFFIX));
 
         // Access control: only renter can pickup
         if (!rental.isOwnedBy(renterId)) {
@@ -252,7 +255,7 @@ public class RentalService {
         log.info("Updating return for rental: {}, renter: {}", rentalId, renterId);
 
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rental with ID " + rentalId + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(RENTAL_NOT_FOUND_PREFIX + rentalId + RENTAL_NOT_FOUND_SUFFIX));
 
         // Access control: only renter can return
         if (!rental.isOwnedBy(renterId)) {
@@ -312,7 +315,7 @@ public class RentalService {
         log.info("Approving return for rental: {}, operator: {}", rentalId, operatorId);
 
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rental with ID " + rentalId + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(RENTAL_NOT_FOUND_PREFIX + rentalId + RENTAL_NOT_FOUND_SUFFIX));
 
         // TODO: Validate operator is car owner (requires car-service integration, future phase)
 
@@ -354,7 +357,7 @@ public class RentalService {
         log.info("Cancelling rental: {}, renter: {}", rentalId, renterId);
 
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rental with ID " + rentalId + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(RENTAL_NOT_FOUND_PREFIX + rentalId + RENTAL_NOT_FOUND_SUFFIX));
 
         // Access control: only renter can cancel
         if (!rental.isOwnedBy(renterId)) {

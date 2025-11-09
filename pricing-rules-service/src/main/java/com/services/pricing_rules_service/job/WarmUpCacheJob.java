@@ -155,20 +155,8 @@ public class WarmUpCacheJob {
 
             int cachedCount = 0;
             for (PricingRule rule : activeRules) {
-                try {
-                    // Construct cache key: "category:unit:timestamp"
-                    String cacheKey = rule.getVehicleCategory() + ":" + rule.getUnit() + ":" + now;
-                    
-                    // Populate cache
-                    pricingRulesCache.put(cacheKey, rule);
+                if (cacheIndividualRule(rule, pricingRulesCache, now)) {
                     cachedCount++;
-                    
-                    log.debug("Cached rule: {} (id={}, pricePerUnit={})",
-                            cacheKey, rule.getId(), rule.getPricePerUnit());
-                    
-                } catch (Exception ex) {
-                    log.warn("Failed to cache pricing rule id={}: {}", rule.getId(), ex.getMessage());
-                    // Continue with next rule (non-critical failure)
                 }
             }
 
@@ -179,6 +167,51 @@ public class WarmUpCacheJob {
         } catch (Exception ex) {
             log.error("Failed to warm up pricing rules cache", ex);
             // Don't propagate exception (non-critical job)
+        }
+    }
+
+    /**
+     * Caches an individual pricing rule in the provided cache.
+     *
+     * <p>This method encapsulates the logic for caching a single pricing rule,
+     * including cache key construction, cache population, and error handling.
+     * It is designed to be resilient: failures to cache individual rules do not
+     * propagate and are logged as warnings.</p>
+     *
+     * <p><strong>Cache Key Format:</strong></p>
+     * <pre>
+     * "{vehicleCategory}:{pricingUnit}:{timestamp}"
+     * Example: "STANDARD:HOUR:2025-01-09T03:00:00Z"
+     * </pre>
+     *
+     * <p><strong>Error Handling:</strong></p>
+     * <ul>
+     *   <li>Any exception during cache population is caught and logged</li>
+     *   <li>Method returns {@code false} on failure, {@code true} on success</li>
+     *   <li>Failures are non-critical and allow processing of remaining rules</li>
+     * </ul>
+     *
+     * @param rule the pricing rule to cache
+     * @param cache the cache instance to populate
+     * @param timestamp the timestamp to use in the cache key
+     * @return {@code true} if caching succeeded, {@code false} otherwise
+     */
+    private boolean cacheIndividualRule(PricingRule rule, Cache cache, Instant timestamp) {
+        try {
+            // Construct cache key: "category:unit:timestamp"
+            String cacheKey = rule.getVehicleCategory() + ":" + rule.getUnit() + ":" + timestamp;
+            
+            // Populate cache
+            cache.put(cacheKey, rule);
+            
+            log.debug("Cached rule: {} (id={}, pricePerUnit={})",
+                    cacheKey, rule.getId(), rule.getPricePerUnit());
+            
+            return true;
+            
+        } catch (Exception ex) {
+            log.warn("Failed to cache pricing rule id={}: {}", rule.getId(), ex.getMessage());
+            return false;
         }
     }
 }

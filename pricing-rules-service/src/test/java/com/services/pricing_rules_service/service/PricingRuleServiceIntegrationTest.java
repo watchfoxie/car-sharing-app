@@ -63,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("PricingRuleService Integration Tests")
+@SuppressWarnings("resource")
 class PricingRuleServiceIntegrationTest {
 
     @Container
