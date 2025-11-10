@@ -107,13 +107,24 @@ public class Feedback {
 
     /**
      * User ID who created this feedback (from JWT sub claim).
+     * 
+     * <p>Auto-populated by JPA Auditing (via {@link JpaAuditingConfig}).
+     * In production: set to JWT sub claim. In tests: set to "system".
+     * 
+     * <p>Note: nullable=false in production (enforced by Flyway migration),
+     * but tests use Hibernate DDL which requires nullable=true for JPA Auditing.
      */
     @CreatedBy
-    @Column(name = "created_by", nullable = false, updatable = false, length = 255)
+    @Column(name = "created_by", updatable = false, length = 255)
     private String createdBy;
 
     /**
      * User ID who last modified this feedback (from JWT sub claim).
+     * 
+     * <p>Auto-populated by JPA Auditing (via {@link JpaAuditingConfig}).
+     * In production: set to JWT sub claim. In tests: set to "system".
+     * 
+     * <p>Note: nullable column for flexibility (audit metadata, not business data).
      */
     @LastModifiedBy
     @Column(name = "last_modified_by", length = 255)
