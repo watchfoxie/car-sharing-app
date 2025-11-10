@@ -64,6 +64,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DisplayName("PricingRuleRepository Integration Tests")
+@SuppressWarnings("resource")
 class PricingRuleRepositoryIntegrationTest {
 
     @Container

@@ -208,14 +208,14 @@ public class PricingRule {
      */
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
-    private Instant createdDate;
+    private Instant createdAt;
 
     /**
      * Timestamp when the rule was last modified (auto-updated).
      */
     @LastModifiedDate
     @Column(name = "last_modified_date")
-    private Instant lastModifiedDate;
+    private Instant lastModifiedAt;
 
     /**
      * Account ID of the user who created the rule (auto-populated from JWT sub claim).
@@ -234,6 +234,15 @@ public class PricingRule {
     // ==================== Business Methods ====================
 
     /**
+     * Checks if the pricing rule is currently active.
+     * 
+     * @return {@code true} if active, {@code false} otherwise
+     */
+    public boolean isActive() {
+        return this.active != null && this.active;
+    }
+
+    /**
      * Checks if the rule is currently effective (active and within validity period).
      * 
      * <p>A rule is effective if:</p>
@@ -247,7 +256,7 @@ public class PricingRule {
      * @return {@code true} if the rule is effective, {@code false} otherwise
      */
     public boolean isEffectiveAt(Instant now) {
-        if (!active) return false;
+        if (!isActive()) return false;
         if (now.isBefore(effectiveFrom)) return false;
         return effectiveTo == null || now.isBefore(effectiveTo);
     }

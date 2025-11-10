@@ -26,8 +26,8 @@ import java.time.Instant;
  * 
  * <p><strong>Audit Fields:</strong></p>
  * <ul>
- *   <li>{@code createdDate}, {@code createdBy} - Who and when created the rule</li>
- *   <li>{@code lastModifiedDate}, {@code lastModifiedBy} - Who and when last modified</li>
+ *   <li>{@code createdAt}, {@code createdBy} - Who and when created the rule</li>
+ *   <li>{@code lastModifiedAt}, {@code lastModifiedBy} - Who and when last modified</li>
  * </ul>
  * 
  * @author Car Sharing Team
@@ -81,11 +81,11 @@ public class PricingRuleResponse {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     @Schema(description = "Timestamp when the rule was created", example = "2025-01-01T10:30:00Z")
-    private Instant createdDate;
+    private Instant createdAt;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     @Schema(description = "Timestamp when the rule was last modified", example = "2025-01-15T14:45:00Z")
-    private Instant lastModifiedDate;
+    private Instant lastModifiedAt;
 
     @Schema(description = "Account ID of the user who created the rule", example = "admin-001")
     private String createdBy;

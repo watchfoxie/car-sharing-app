@@ -31,7 +31,7 @@ import org.mapstruct.*;
  * <p><strong>Generated Fields:</strong></p>
  * <ul>
  *   <li>{@code effectivePeriod} - Ignored in all mappings (database-generated column)</li>
- *   <li>Audit fields ({@code createdDate}, {@code lastModifiedDate}, etc.) - Managed by JPA Auditing, not mapped from DTOs</li>
+ *   <li>Audit fields ({@code createdAt}, {@code lastModifiedAt}, etc.) - Managed by JPA Auditing, not mapped from DTOs</li>
  * </ul>
  * 
  * <p><strong>Usage Example:</strong></p>
@@ -74,7 +74,7 @@ public interface PricingRuleMapper {
      * <p>This method is used for all read operations (GET endpoints). It includes:</p>
      * <ul>
      *   <li>All business fields (unit, category, price, durations, etc.)</li>
-     *   <li>Audit metadata (createdDate, createdBy, lastModifiedDate, lastModifiedBy)</li>
+     *   <li>Audit metadata (createdAt, createdBy, lastModifiedAt, lastModifiedBy)</li>
      * </ul>
      * 
      * <p><strong>Note:</strong> The {@code effectivePeriod} field is excluded (database-only representation).</p>
@@ -93,8 +93,8 @@ public interface PricingRuleMapper {
     @Mapping(target = "effectiveFrom", source = "effectiveFrom")
     @Mapping(target = "effectiveTo", source = "effectiveTo")
     @Mapping(target = "active", source = "active")
-    @Mapping(target = "createdDate", source = "createdDate")
-    @Mapping(target = "lastModifiedDate", source = "lastModifiedDate")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "lastModifiedAt", source = "lastModifiedAt")
     @Mapping(target = "createdBy", source = "createdBy")
     @Mapping(target = "lastModifiedBy", source = "lastModifiedBy")
     PricingRuleResponse toResponse(PricingRule pricingRule);
@@ -115,8 +115,8 @@ public interface PricingRuleMapper {
      */
     @Mapping(target = "id", ignore = true) // Auto-generated
     @Mapping(target = "effectivePeriod", ignore = true) // Database-generated
-    @Mapping(target = "createdDate", ignore = true) // JPA Auditing
-    @Mapping(target = "lastModifiedDate", ignore = true) // JPA Auditing
+    @Mapping(target = "createdAt", ignore = true) // JPA Auditing
+    @Mapping(target = "lastModifiedAt", ignore = true) // JPA Auditing
     @Mapping(target = "createdBy", ignore = true) // JPA Auditing
     @Mapping(target = "lastModifiedBy", ignore = true) // JPA Auditing
     PricingRule toEntity(CreatePricingRuleRequest request);
@@ -135,8 +135,8 @@ public interface PricingRuleMapper {
      * <ul>
      *   <li>{@code id} - Never changed (URL path parameter)</li>
      *   <li>{@code effectivePeriod} - Database-generated, cannot be manually set</li>
-     *   <li>{@code createdDate}, {@code createdBy} - Audit trail, never modified</li>
-     *   <li>{@code lastModifiedDate}, {@code lastModifiedBy} - Updated by JPA Auditing trigger</li>
+     *   <li>{@code createdAt}, {@code createdBy} - Audit trail, never modified</li>
+     *   <li>{@code lastModifiedAt}, {@code lastModifiedBy} - Updated by JPA Auditing trigger</li>
      * </ul>
      * 
      * <p><strong>Usage Example:</strong></p>
@@ -156,9 +156,9 @@ public interface PricingRuleMapper {
      */
     @Mapping(target = "id", ignore = true) // Immutable
     @Mapping(target = "effectivePeriod", ignore = true) // Database-generated
-    @Mapping(target = "createdDate", ignore = true) // Immutable audit field
+    @Mapping(target = "createdAt", ignore = true) // Immutable audit field
     @Mapping(target = "createdBy", ignore = true) // Immutable audit field
-    @Mapping(target = "lastModifiedDate", ignore = true) // JPA Auditing
+    @Mapping(target = "lastModifiedAt", ignore = true) // JPA Auditing
     @Mapping(target = "lastModifiedBy", ignore = true) // JPA Auditing
     void updateRuleFromRequest(UpdatePricingRuleRequest request, @MappingTarget PricingRule target);
 }

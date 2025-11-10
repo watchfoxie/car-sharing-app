@@ -27,7 +27,7 @@ import java.time.Instant;
  * <p><strong>Immutable Fields:</strong></p>
  * <ul>
  *   <li>{@code id} - Cannot be changed (URL path parameter)</li>
- *   <li>Audit fields (createdDate, createdBy) - Managed by JPA Auditing</li>
+ *   <li>Audit fields (createdAt, createdBy) - Managed by JPA Auditing</li>
  * </ul>
  * 
  * <p><strong>Usage Example:</strong></p>
