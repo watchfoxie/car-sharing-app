@@ -17,9 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: rental
+        '[default_schema]': rental
         jdbc:
-          time_zone: UTC
+          '[time_zone]': UTC
         # Transaction isolation level for concurrency control
         # READ_COMMITTED allows better performance while EXCLUDE constraint prevents conflicts
         connection:
@@ -39,7 +39,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       group-id: rental-service
       properties:
-        spring.json.trusted.packages: com.services.*
+        '[spring.json.trusted.packages]': com.services.*
   quartz:
     job-store-type: jdbc
     jdbc:
@@ -72,9 +72,9 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -90,7 +90,7 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.services.rental: DEBUG
+    '[com.services.rental]': DEBUG
 
 ---
 spring:
