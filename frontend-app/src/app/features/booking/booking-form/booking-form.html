@@ -1,24 +1,32 @@
-<section class="booking-container">
-	<mat-card class="car-summary" appearance="outlined">
+<section class="max-w-4xl mx-auto space-y-6">
+	<mat-card appearance="outlined">
 		<mat-card-header>
 			<mat-card-title>
-				<ng-container *ngIf="car(); else carPlaceholder">
+				@if (car()) {
 					{{ car()?.brand }} {{ car()?.model }}
-				</ng-container>
+				} @else {
+					Select a vehicle
+				}
 			</mat-card-title>
-			<mat-card-subtitle *ngIf="car()">
-				Category · {{ car()?.category }}
-			</mat-card-subtitle>
+			@if (car()) {
+				<mat-card-subtitle>
+					Category · {{ car()?.category }}
+				</mat-card-subtitle>
+			}
 		</mat-card-header>
 		<mat-card-content>
-			<section *ngIf="loadingCar()" class="loading-state">
-				<mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
-				<span>Fetching vehicle details…</span>
-			</section>
-			<p *ngIf="carError()" class="error">{{ carError() }}</p>
-			<ng-template #carPlaceholder>
-				<span class="muted">Select a car from the catalog to prefill the booking form.</span>
-			</ng-template>
+			@if (loadingCar()) {
+				<div class="flex items-center gap-2 py-4">
+					<mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
+					<span>Fetching vehicle details…</span>
+				</div>
+			}
+			@if (carError()) {
+				<p class="text-red-600 font-medium">{{ carError() }}</p>
+			}
+			@if (!car() && !loadingCar() && !carError()) {
+				<span class="text-gray-500">Select a car from the catalog to prefill the booking form.</span>
+			}
 		</mat-card-content>
 	</mat-card>
 
@@ -28,20 +36,24 @@
 			<mat-card-subtitle>Choose dates and locations, then reserve the vehicle.</mat-card-subtitle>
 		</mat-card-header>
 		<mat-card-content>
-			<p class="error" *ngIf="estimateError()">{{ estimateError() }}</p>
-			<p class="success" *ngIf="rentalSuccess() as success">
-				Booking created! Reference #{{ success.id }}. Track it inside your renter dashboard.
-			</p>
+			@if (estimateError()) {
+				<p class="text-red-600 font-medium mb-4">{{ estimateError() }}</p>
+			}
+			@if (rentalSuccess(); as success) {
+				<p class="text-green-600 font-medium mb-4 p-4 bg-green-50 rounded">
+					Booking created! Reference #{{ success.id }}. Track it inside your renter dashboard.
+				</p>
+			}
 
-			<form class="booking-form" [formGroup]="form" (ngSubmit)="submitBooking()" novalidate>
-				<div class="grid">
+			<form [formGroup]="form" (ngSubmit)="submitBooking()" novalidate class="space-y-4">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<mat-form-field appearance="fill">
 						<mat-label>Vehicle category</mat-label>
 						<input matInput formControlName="vehicleCategory" readonly>
 						<mat-icon matSuffix>directions_car</mat-icon>
-						<mat-error *ngIf="form.controls.vehicleCategory.hasError('required')">
-							Category is required.
-						</mat-error>
+						@if (form.controls.vehicleCategory.hasError('required')) {
+							<mat-error>Category is required.</mat-error>
+						}
 					</mat-form-field>
 
 					<mat-form-field appearance="fill">
@@ -49,20 +61,20 @@
 						<input matInput [matDatepicker]="pickupPicker" formControlName="pickupDate" required>
 						<mat-datepicker-toggle matIconSuffix [for]="pickupPicker"></mat-datepicker-toggle>
 						<mat-datepicker #pickupPicker></mat-datepicker>
-						<mat-error *ngIf="form.controls.pickupDate.hasError('required')">
-							Pickup date is required.
-						</mat-error>
+						@if (form.controls.pickupDate.hasError('required')) {
+							<mat-error>Pickup date is required.</mat-error>
+						}
 					</mat-form-field>
 
 					<mat-form-field appearance="fill">
 						<mat-label>Pickup time</mat-label>
 						<input matInput type="time" formControlName="pickupTime" required>
-						<mat-error *ngIf="form.controls.pickupTime.hasError('required')">
-							Pickup time is required.
-						</mat-error>
-						<mat-error *ngIf="form.controls.pickupTime.hasError('pattern')">
-							Format must be HH:mm.
-						</mat-error>
+						@if (form.controls.pickupTime.hasError('required')) {
+							<mat-error>Pickup time is required.</mat-error>
+						}
+						@if (form.controls.pickupTime.hasError('pattern')) {
+							<mat-error>Format must be HH:mm.</mat-error>
+						}
 					</mat-form-field>
 
 					<mat-form-field appearance="fill">
@@ -70,20 +82,20 @@
 						<input matInput [matDatepicker]="returnPicker" formControlName="returnDate" required>
 						<mat-datepicker-toggle matIconSuffix [for]="returnPicker"></mat-datepicker-toggle>
 						<mat-datepicker #returnPicker></mat-datepicker>
-						<mat-error *ngIf="form.controls.returnDate.hasError('required')">
-							Return date is required.
-						</mat-error>
+						@if (form.controls.returnDate.hasError('required')) {
+							<mat-error>Return date is required.</mat-error>
+						}
 					</mat-form-field>
 
 					<mat-form-field appearance="fill">
 						<mat-label>Return time</mat-label>
 						<input matInput type="time" formControlName="returnTime" required>
-						<mat-error *ngIf="form.controls.returnTime.hasError('required')">
-							Return time is required.
-						</mat-error>
-						<mat-error *ngIf="form.controls.returnTime.hasError('pattern')">
-							Format must be HH:mm.
-						</mat-error>
+						@if (form.controls.returnTime.hasError('required')) {
+							<mat-error>Return time is required.</mat-error>
+						}
+						@if (form.controls.returnTime.hasError('pattern')) {
+							<mat-error>Format must be HH:mm.</mat-error>
+						}
 					</mat-form-field>
 
 					<mat-form-field appearance="fill">
@@ -97,14 +109,16 @@
 					</mat-form-field>
 				</div>
 
-				<div class="meta" *ngIf="pickupDisplay() && returnDisplay()">
-					<mat-icon aria-hidden="true">schedule</mat-icon>
-					<span>
-						Pickup: {{ pickupDisplay() }} · Return: {{ returnDisplay() }}
-					</span>
-				</div>
+				@if (pickupDisplay() && returnDisplay()) {
+					<div class="flex items-center gap-2 text-gray-700">
+						<mat-icon aria-hidden="true">schedule</mat-icon>
+						<span>
+							Pickup: {{ pickupDisplay() }} · Return: {{ returnDisplay() }}
+						</span>
+					</div>
+				}
 
-				<div class="actions">
+				<div class="flex gap-4">
 					<button
 						mat-stroked-button
 						type="button"
@@ -113,7 +127,14 @@
 						[disabled]="submittingEstimate() || submittingBooking()"
 					>
 						<mat-icon aria-hidden="true">calculate</mat-icon>
-						<span *ngIf="!submittingEstimate(); else estimatingLabel">Estimate price</span>
+						@if (submittingEstimate()) {
+							<span class="flex items-center gap-2">
+								<mat-progress-spinner diameter="18" mode="indeterminate"></mat-progress-spinner>
+								Calculating…
+							</span>
+						} @else {
+							<span>Estimate price</span>
+						}
 					</button>
 					<button
 						mat-flat-button
@@ -121,39 +142,38 @@
 						type="submit"
 						[disabled]="form.invalid || submittingBooking()"
 					>
-						<mat-icon aria-hidden="true" *ngIf="submittingBooking()" class="spin">hourglass_top</mat-icon>
+						@if (submittingBooking()) {
+							<mat-icon aria-hidden="true" class="animate-spin">hourglass_top</mat-icon>
+						}
 						<span>{{ submittingBooking() ? 'Sending request…' : 'Confirm booking' }}</span>
 					</button>
 				</div>
 			</form>
 
-			<section *ngIf="estimate() as quote" class="estimate">
-				<mat-divider></mat-divider>
-				<header>
-					<h3>Estimated total</h3>
-					<span class="total">{{ quote.totalCost | number: '1.2-2' }} MDL</span>
-				</header>
-				<p class="muted">
-					Duration: {{ formatDuration(quote.totalDuration) }} · Calculated at {{ formatInstant(quote.calculatedAt) }}
-				</p>
-				<ul class="breakdown">
-					<li *ngFor="let entry of quote.breakdown; trackBy: trackByBreakdown">
-						<span>
-							{{ entry.unit | titlecase }} × {{ entry.quantity }}
-						</span>
-						<span>
-							{{ entry.subtotal | number: '1.2-2' }} MDL
-						</span>
-					</li>
-				</ul>
-			</section>
-
-			<ng-template #estimatingLabel>
-				<span class="loading-inline">
-					<mat-progress-spinner diameter="18" mode="indeterminate"></mat-progress-spinner>
-					Calculating…
-				</span>
-			</ng-template>
+			@if (estimate(); as quote) {
+				<section class="mt-6 p-4 border rounded-lg bg-gray-50">
+					<mat-divider class="mb-4"></mat-divider>
+					<header class="flex justify-between items-center mb-2">
+						<h3 class="text-xl font-semibold">Estimated total</h3>
+						<span class="text-2xl font-bold text-primary">{{ quote.totalCost | number: '1.2-2' }} MDL</span>
+					</header>
+					<p class="text-gray-600 text-sm mb-4">
+						Duration: {{ formatDuration(quote.totalDuration) }} · Calculated at {{ formatInstant(quote.calculatedAt) }}
+					</p>
+					<ul class="space-y-2">
+						@for (entry of quote.breakdown; track entry.unit) {
+							<li class="flex justify-between">
+								<span>
+									{{ entry.unit | titlecase }} × {{ entry.quantity }}
+								</span>
+								<span class="font-medium">
+									{{ entry.subtotal | number: '1.2-2' }} MDL
+								</span>
+							</li>
+						}
+					</ul>
+				</section>
+			}
 		</mat-card-content>
 	</mat-card>
 </section>

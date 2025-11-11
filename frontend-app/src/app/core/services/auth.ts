@@ -27,11 +27,11 @@ export class Auth {
   private readonly loadingSignal = signal(true);
 
   private get sessionStorage(): Storage | null {
-    if (typeof window === 'undefined') {
+    if (globalThis.window === undefined) {
       return null;
     }
     try {
-      return window.sessionStorage;
+      return globalThis.window.sessionStorage;
     } catch (error) {
       console.warn('Session storage unavailable', error);
       return null;
@@ -53,8 +53,8 @@ export class Auth {
   }
 
   async initialize(): Promise<void> {
-    const isBrowser = typeof window !== 'undefined';
-    const origin = isBrowser ? window.location.origin : '';
+    const isBrowser = globalThis.window !== undefined;
+    const origin = isBrowser ? globalThis.window.location.origin : '';
 
     this.oauthService.configure({
       issuer: environment.auth.issuer,
@@ -92,26 +92,23 @@ export class Auth {
   login(redirectUrl?: string): void {
     const target = redirectUrl ?? this.router.url ?? '/';
     this.sessionStorage?.setItem(REDIRECT_STORAGE_KEY, target);
-    if (typeof window !== 'undefined') {
+    if (globalThis.window !== undefined) {
       this.oauthService.initCodeFlow(target);
     }
   }
 
-  async logout(): Promise<void> {
+  logout(): void {
     this.sessionStorage?.removeItem(REDIRECT_STORAGE_KEY);
     this.profileSignal.set(null);
-    if (typeof window !== 'undefined') {
-      await this.oauthService.logOut();
+    if (globalThis.window !== undefined) {
+      this.oauthService.logOut();
     }
   }
 
   consumeRedirect(): string {
     const stored = this.sessionStorage?.getItem(REDIRECT_STORAGE_KEY) ?? null;
     this.sessionStorage?.removeItem(REDIRECT_STORAGE_KEY);
-    if (stored && stored.startsWith('/')) {
-      return stored;
-    }
-    return '/cars';
+    return stored?.startsWith('/') ? stored : '/cars';
   }
 
   hasRole(role: string): boolean {
@@ -156,7 +153,7 @@ export class Auth {
   }
 
   private decodeToken(token: string | null): Record<string, any> | null {
-    if (!token || typeof window === 'undefined') {
+    if (!token || globalThis.window === undefined) {
       return null;
     }
     const payload = token.split('.')[1];
@@ -165,12 +162,15 @@ export class Auth {
     }
 
     try {
-      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const decodedPayload = typeof atob === 'function'
-        ? atob(normalized)
-        : typeof globalThis !== 'undefined' && typeof (globalThis as any).Buffer !== 'undefined'
-          ? (globalThis as any).Buffer.from(normalized, 'base64').toString('binary')
-          : null;
+      const normalized = payload.replaceAll('-', '+').replaceAll('_', '/');
+      let decodedPayload: string | null = null;
+
+      if (typeof atob === 'function') {
+        decodedPayload = atob(normalized);
+      } else if (globalThis !== undefined && (globalThis as any).Buffer !== undefined) {
+        decodedPayload = (globalThis as any).Buffer.from(normalized, 'base64').toString('binary');
+      }
+
       return decodedPayload ? JSON.parse(decodedPayload) : null;
     } catch (error) {
       console.error('Failed to decode access token payload', error);
@@ -191,11 +191,11 @@ export class Auth {
 
   private collectResourceRoles(resourceAccess: Record<string, any>): string[] {
     const roles: string[] = [];
-    Object.values(resourceAccess ?? {}).forEach((entry: any) => {
+    for (const entry of Object.values(resourceAccess ?? {})) {
       if (Array.isArray(entry?.roles)) {
         roles.push(...entry.roles);
       }
-    });
+    }
     return roles;
   }
 

@@ -75,7 +75,7 @@ export class OwnerDashboard {
     }
 
     const raw = this.carIdControl.value?.trim();
-    const id = raw ? Number.parseInt(raw, 10) : NaN;
+    const id = raw ? Number.parseInt(raw, 10) : Number.NaN;
     if (!Number.isFinite(id) || id <= 0) {
       this.carError.set('Provide a valid car ID.');
       return;

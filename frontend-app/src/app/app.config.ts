@@ -1,4 +1,4 @@
-import { ApplicationConfig, APP_INITIALIZER, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, PreloadAllModules, withPreloading } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -9,10 +9,6 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
 import { Auth } from './core/services/auth';
 import { environment } from '../environments/environment';
-
-function initAuth(auth: Auth) {
-  return () => auth.initialize();
-}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,11 +24,9 @@ export const appConfig: ApplicationConfig = {
         sendAccessToken: true
       }
     }),
-    {
-      provide: APP_INITIALIZER,
-      multi: true,
-      deps: [Auth],
-      useFactory: initAuth
-    }
+    provideAppInitializer(() => {
+      const auth = inject(Auth);
+      return auth.initialize();
+    })
   ]
 };

@@ -1,29 +1,31 @@
-<mat-toolbar color="primary" class="app-toolbar">
-  <button type="button" class="app-title" mat-button routerLink="/cars">Car Sharing</button>
-  <span class="spacer"></span>
+<mat-toolbar color="primary" class="flex gap-2">
+  <button type="button" class="text-lg font-semibold uppercase" mat-button routerLink="/cars">Car Sharing</button>
+  <span class="flex-auto"></span>
   <nav>
-    <a
-      *ngFor="let link of navLinks; trackBy: trackByPath"
-      mat-button
-      routerLink="{{ link.path }}"
-      routerLinkActive="active-link"
-      [class.hidden]="!canDisplay(link)"
-    >
-      {{ link.label }}
-    </a>
+    @for (link of navLinks; track link.path) {
+      <a
+        mat-button
+        routerLink="{{ link.path }}"
+        routerLinkActive="font-semibold underline"
+        [class.hidden]="!canDisplay(link)"
+      >
+        {{ link.label }}
+      </a>
+    }
   </nav>
-  <span class="spacer"></span>
-  <ng-container *ngIf="auth.isAuthenticated(); else signIn">
-    <span class="user-name">{{ auth.profile()?.fullName ?? auth.profile()?.email }}</span>
+  <span class="flex-auto"></span>
+  @if (auth.isAuthenticated()) {
+    <span class="mr-4">{{ auth.profile()?.fullName ?? auth.profile()?.email }}</span>
     <button type="button" mat-stroked-button color="accent" (click)="logout()">Logout</button>
-  </ng-container>
-  <ng-template #signIn>
+  } @else {
     <button type="button" mat-flat-button color="accent" (click)="login()">Login</button>
-  </ng-template>
+  }
 </mat-toolbar>
 
-<mat-progress-bar *ngIf="auth.loading()" mode="indeterminate" color="accent"></mat-progress-bar>
+@if (auth.loading()) {
+  <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+}
 
-<main class="app-container">
+<main class="p-6 mx-auto max-w-7xl w-full">
   <router-outlet />
 </main>

@@ -24,10 +24,10 @@ interface TemporalPayload {
   returnUtc: string;
 }
 
-const VEHICLE_CATEGORIES: VehicleCategory[] = ['ECONOM', 'STANDARD', 'PREMIUM'];
+const VEHICLE_CATEGORIES = new Set<VehicleCategory>(['ECONOM', 'STANDARD', 'PREMIUM']);
 
 function isVehicleCategory(value: string | null | undefined): value is VehicleCategory {
-  return value != null && VEHICLE_CATEGORIES.includes(value.toUpperCase() as VehicleCategory);
+  return value != null && VEHICLE_CATEGORIES.has(value.toUpperCase() as VehicleCategory);
 }
 
 function parseNumber(value: string | null): number | null {
@@ -262,7 +262,7 @@ export class BookingForm {
           this.loadCar(carId);
         }
         if (isVehicleCategory(category)) {
-          this.form.controls.vehicleCategory.setValue(category as VehicleCategory);
+          this.form.controls.vehicleCategory.setValue(category);
         }
       });
   }

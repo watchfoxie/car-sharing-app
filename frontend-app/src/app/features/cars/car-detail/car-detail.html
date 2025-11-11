@@ -1,15 +1,17 @@
-<section *ngIf="loading(); else detailLoaded" class="loading">
-	<mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-</section>
+@if (loading()) {
+	<div class="flex justify-center items-center py-12">
+		<mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+	</div>
+} @else {
+	@if (errorMessage()) {
+		<p class="text-red-600 font-medium p-4 bg-red-50 rounded mb-4">
+			{{ errorMessage() }}
+			<a routerLink="/cars" class="underline ml-2">Back to catalog</a>
+		</p>
+	}
 
-<ng-template #detailLoaded>
-	<p *ngIf="errorMessage()" class="error">
-		{{ errorMessage() }}
-		<a routerLink="/cars">Back to catalog</a>
-	</p>
-
-	<ng-container *ngIf="car() as car">
-		<mat-card appearance="outlined" class="car-info">
+	@if (car(); as car) {
+		<mat-card appearance="outlined" class="mb-6">
 			<mat-card-header>
 				<mat-card-title>{{ car.brand }} {{ car.model }}</mat-card-title>
 				<mat-card-subtitle>
@@ -18,19 +20,29 @@
 			</mat-card-header>
 			<mat-card-content>
 				<p>{{ car.description || 'No description provided for this vehicle yet.' }}</p>
-				<mat-divider></mat-divider>
-				<div class="specs">
-					<span><mat-icon>airline_seat_recline_normal</mat-icon> Seats: {{ car.seats ?? 'N/A' }}</span>
-					<span><mat-icon>settings</mat-icon> Transmission: {{ car.transmissionType ?? 'N/A' }}</span>
-					<span><mat-icon>local_gas_station</mat-icon> Fuel: {{ car.fuelType ?? 'N/A' }}</span>
-					<span><mat-icon>pin</mat-icon> Registration: {{ car.registrationNumber }}</span>
+				<mat-divider class="my-4"></mat-divider>
+				<div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-4">
+					<span class="flex items-center gap-2">
+						<mat-icon>airline_seat_recline_normal</mat-icon> Seats: {{ car.seats ?? 'N/A' }}
+					</span>
+					<span class="flex items-center gap-2">
+						<mat-icon>settings</mat-icon> Transmission: {{ car.transmissionType ?? 'N/A' }}
+					</span>
+					<span class="flex items-center gap-2">
+						<mat-icon>local_gas_station</mat-icon> Fuel: {{ car.fuelType ?? 'N/A' }}
+					</span>
+					<span class="flex items-center gap-2">
+						<mat-icon>pin</mat-icon> Registration: {{ car.registrationNumber }}
+					</span>
 				</div>
-				<div class="badges">
+				<div class="flex gap-2">
 					<mat-chip color="primary" selected>{{ car.shareable ? 'Available' : 'Unavailable' }}</mat-chip>
-					<mat-chip *ngIf="feedbackSummary()?.avgRating != null" color="accent" selected>
-						<mat-icon>star</mat-icon>
-						{{ feedbackSummary()?.avgRating | number: '1.1-1' }} ({{ feedbackSummary()?.feedbackCount }} reviews)
-					</mat-chip>
+					@if (feedbackSummary()?.avgRating != null) {
+						<mat-chip color="accent" selected>
+							<mat-icon>star</mat-icon>
+							{{ feedbackSummary()?.avgRating | number: '1.1-1' }} ({{ feedbackSummary()?.feedbackCount }} reviews)
+						</mat-chip>
+					}
 				</div>
 			</mat-card-content>
 			<mat-card-actions>
@@ -50,17 +62,17 @@
 			</mat-card-actions>
 		</mat-card>
 
-		<section class="feedback-section">
-			<h2>Feedback &amp; reviews</h2>
-			<app-feedback-form
-				*ngIf="auth.isAuthenticated()"
-				[carId]="car.id"
-				(feedbackCreated)="onFeedbackCreated()"
-			></app-feedback-form>
-			<ng-container *ngIf="!auth.isAuthenticated()">
-				<p class="muted">Sign in to share your experience with this car.</p>
-			</ng-container>
+		<section class="mt-8">
+			<h2 class="text-2xl font-bold mb-4">Feedback &amp; reviews</h2>
+			@if (auth.isAuthenticated()) {
+				<app-feedback-form
+					[carId]="car.id"
+					(feedbackCreated)="onFeedbackCreated()"
+				></app-feedback-form>
+			} @else {
+				<p class="text-gray-500 mb-4">Sign in to share your experience with this car.</p>
+			}
 			<app-feedback-list [carId]="car.id"></app-feedback-list>
 		</section>
-	</ng-container>
-</ng-template>
+	}
+}
