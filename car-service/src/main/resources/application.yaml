@@ -17,9 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: car
+        '[default_schema]': car
         jdbc:
-          time_zone: UTC
+          '[time_zone]': UTC
   flyway:
     enabled: true
     schemas: car
@@ -68,9 +68,9 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -86,7 +86,7 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.services.car: DEBUG
+    '[com.services.car]': DEBUG
 
 ---
 spring:
@@ -98,7 +98,7 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
+    '[org.hibernate.SQL]': DEBUG
 
 ---
 spring:

@@ -34,9 +34,9 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -45,7 +45,7 @@ management:
 logging:
   level:
     root: INFO
-    org.springframework.cloud.config: DEBUG
+    '[org.springframework.cloud.config]': DEBUG
 
 ---
 spring:

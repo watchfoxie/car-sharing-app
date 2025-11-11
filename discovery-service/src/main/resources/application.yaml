@@ -27,9 +27,9 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -38,8 +38,8 @@ management:
 logging:
   level:
     root: INFO
-    com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
+    '[com.netflix.eureka]': DEBUG
+    '[com.netflix.discovery]': DEBUG
 
 ---
 spring:
