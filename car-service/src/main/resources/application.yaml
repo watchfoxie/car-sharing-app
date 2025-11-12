@@ -37,7 +37,19 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      properties:
+        '[enable.idempotence]': true
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: car-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        '[isolation.level]': read_committed
   security:
     oauth2:
       resourceserver:
@@ -87,6 +99,12 @@ logging:
   level:
     root: INFO
     '[com.services.car]': DEBUG
+
+# Outbox poller configuration
+outbox:
+  poller:
+    fixed-delay: 5000      # Poll every 5 seconds
+    initial-delay: 10000   # Wait 10 seconds after startup
 
 ---
 spring:
