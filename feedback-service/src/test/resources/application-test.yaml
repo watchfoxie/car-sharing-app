@@ -14,9 +14,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: feedback
-        format_sql: true
-        hbm2ddl.import_files: trigger-setup.sql
+        '[default_schema]': feedback
+        '[format_sql]': true
+        '[hbm2ddl.import_files]': trigger-setup.sql
     show-sql: true
   
   # Flyway migration
@@ -65,8 +65,8 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.services.feedback_service: DEBUG
-    org.springframework.jdbc: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.testcontainers: INFO
+    '[com.services.feedback_service]': DEBUG
+    '[org.springframework.jdbc]': DEBUG
+    '[org.hibernate.SQL]': DEBUG
+    '[org.hibernate.type.descriptor.sql.BasicBinder]': TRACE
+    '[org.testcontainers]': INFO

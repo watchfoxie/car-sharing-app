@@ -8,9 +8,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: pricing
-        show_sql: false
-        format_sql: true
+        '[default_schema]': pricing
+        '[show_sql]': false
+        '[format_sql]': true
     show-sql: false
   
   flyway:
@@ -30,6 +30,6 @@ spring:
 
 logging:
   level:
-    com.services.pricing_rules_service: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    '[com.services.pricing_rules_service]': DEBUG
+    '[org.hibernate.SQL]': DEBUG
+    '[org.hibernate.type.descriptor.sql.BasicBinder]': TRACE

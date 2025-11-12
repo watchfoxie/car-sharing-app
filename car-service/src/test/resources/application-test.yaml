@@ -21,10 +21,10 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        '[format_sql]': true
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
-          time_zone: UTC
+          '[time_zone]': UTC
 
   # Flyway Configuration
   flyway:
@@ -82,9 +82,9 @@ management:
 logging:
   level:
     root: INFO
-    com.services.car_service: DEBUG
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.testcontainers: INFO
-    com.github.dockerjava: WARN
+    '[com.services.car_service]': DEBUG
+    '[org.springframework.security]': DEBUG
+    '[org.hibernate.SQL]': DEBUG
+    '[org.hibernate.type.descriptor.sql.BasicBinder]': TRACE
+    '[org.testcontainers]': INFO
+    '[com.github.dockerjava]': WARN

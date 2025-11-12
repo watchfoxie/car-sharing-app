@@ -17,9 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: identity
+        '[default_schema]': identity
         jdbc:
-          time_zone: UTC
+          '[time_zone]': UTC
   flyway:
     enabled: true
     schemas: identity
@@ -73,7 +73,7 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.services.identity: DEBUG
+    '[com.services.identity]': DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
@@ -87,8 +87,8 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    '[org.hibernate.SQL]': DEBUG
+    '[org.hibernate.type.descriptor.sql.BasicBinder]': TRACE
 
 ---
 spring:

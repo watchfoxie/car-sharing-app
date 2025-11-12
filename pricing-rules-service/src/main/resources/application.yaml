@@ -17,9 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: pricing
+        '[default_schema]': pricing
         jdbc:
-          time_zone: UTC
+          '[time_zone]': UTC
   flyway:
     enabled: true
     schemas: pricing
@@ -72,9 +72,9 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -90,7 +90,7 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.services.pricing: DEBUG
+    '[com.services.pricing]': DEBUG
 
 ---
 spring:

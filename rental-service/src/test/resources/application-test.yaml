@@ -13,10 +13,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: rental
-        format_sql: true
+        '[default_schema]': rental
+        '[format_sql]': true
         jdbc:
-          time_zone: UTC
+          '[time_zone]': UTC
   flyway:
     enabled: true
     schemas: rental
@@ -45,7 +45,7 @@ management:
 logging:
   level:
     root: INFO
-    com.services.rental_service: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.springframework.jdbc.core: DEBUG
+    '[com.services.rental_service]': DEBUG
+    '[org.hibernate.SQL]': DEBUG
+    '[org.hibernate.type.descriptor.sql.BasicBinder]': TRACE
+    '[org.springframework.jdbc.core]': DEBUG
