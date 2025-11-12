@@ -4,6 +4,8 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   cloud:
+    config:
+      enabled: false
     gateway:
       discovery:
         locator:

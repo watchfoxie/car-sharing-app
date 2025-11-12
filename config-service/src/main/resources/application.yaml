@@ -3,7 +3,11 @@ spring:
     name: config-service
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  main:
+    allow-bean-definition-overriding: true
   cloud:
+    vault:
+      enabled: false
     config:
       server:
         git:

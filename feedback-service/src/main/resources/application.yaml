@@ -17,9 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: feedback
+        '[default_schema]': feedback
         jdbc:
-          time_zone: UTC
+          '[time_zone]': UTC
   flyway:
     enabled: true
     schemas: feedback
@@ -58,9 +58,9 @@ management:
   endpoint:
     health:
       show-details: always
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     sampling:
@@ -76,7 +76,7 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.services.feedback: DEBUG
+    '[com.services.feedback]': DEBUG
 
 ---
 spring:

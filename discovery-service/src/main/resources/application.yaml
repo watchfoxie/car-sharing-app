@@ -3,6 +3,9 @@ spring:
     name: discovery-service
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  cloud:
+    config:
+      enabled: false
 
 server:
   port: 8761
