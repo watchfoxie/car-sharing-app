@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 /**
@@ -69,12 +70,13 @@ public class SecurityConfig {
     @Profile("dev")
     public SecurityWebFilterChain devSecurityFilterChain(ServerHttpSecurity http) {
         return http
-            .csrf(csrf -> csrf.disable())  // Disabled for stateless API
+            .csrf(CsrfSpec::disable)  // Disabled for stateless API
             .authorizeExchange(exchanges -> exchanges
                 // Public endpoints
                 .pathMatchers("/actuator/health", "/actuator/info").permitAll()
                 .pathMatchers("/eureka/**").permitAll()  // Eureka dashboard in dev
                 .pathMatchers("/fallback/**").permitAll()  // Circuit breaker fallbacks
+                .pathMatchers("/openapi", "/openapi/**").permitAll()  // OpenAPI aggregation
                 
                 // Protected API endpoints (JWT required)
                 .pathMatchers("/api/v1/**").authenticated()
@@ -110,11 +112,12 @@ public class SecurityConfig {
     @Profile({"staging", "prod"})
     public SecurityWebFilterChain prodSecurityFilterChain(ServerHttpSecurity http) {
         return http
-            .csrf(csrf -> csrf.disable())  // Disabled for stateless API
+            .csrf(CsrfSpec::disable)  // Disabled for stateless API
             .authorizeExchange(exchanges -> exchanges
                 // Public endpoints (minimal)
                 .pathMatchers("/actuator/health").permitAll()
                 .pathMatchers("/fallback/**").permitAll()
+                .pathMatchers("/openapi", "/openapi/**").permitAll()  // OpenAPI in staging
                 
                 // Protected API endpoints
                 .pathMatchers("/api/v1/**").authenticated()
