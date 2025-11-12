@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +30,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * via Eureka Service Discovery. Provides unified API documentation accessible through
  * Swagger UI at the gateway level.
  * 
+ * <p><strong>Active only in dev and staging environments.</strong> Production deployment
+ * does not expose OpenAPI documentation endpoints.
+ * 
  * <p><strong>Endpoints:</strong>
  * <ul>
  *   <li>GET /openapi - Aggregated OpenAPI specification from all services</li>
@@ -48,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 @RequestMapping("/openapi")
 @RequiredArgsConstructor
+@Profile({"dev", "staging"})
 public class OpenApiAggregationController {
 
     private final DiscoveryClient discoveryClient;

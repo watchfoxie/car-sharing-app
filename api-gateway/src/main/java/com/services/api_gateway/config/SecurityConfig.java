@@ -109,8 +109,8 @@ public class SecurityConfig {
      * @return Configured security filter chain
      */
     @Bean
-    @Profile({"staging", "prod"})
-    public SecurityWebFilterChain prodSecurityFilterChain(ServerHttpSecurity http) {
+    @Profile("staging")
+    public SecurityWebFilterChain stagingSecurityFilterChain(ServerHttpSecurity http) {
         return http
             .csrf(CsrfSpec::disable)  // Disabled for stateless API
             .authorizeExchange(exchanges -> exchanges
@@ -122,7 +122,54 @@ public class SecurityConfig {
                 // Protected API endpoints
                 .pathMatchers("/api/v1/**").authenticated()
                 
-                // Block infrastructure endpoints in prod
+                // Block infrastructure endpoints
+                .pathMatchers("/eureka/**").denyAll()
+                .pathMatchers("/actuator/**").denyAll()
+                
+                // Default: deny
+                .anyExchange().authenticated()
+            )
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> {
+                    // JWT validation
+                })
+            )
+            // Security headers
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.disable())
+                .contentTypeOptions(content -> {})
+            )
+            .build();
+    }
+
+    /**
+     * Security configuration for production environment.
+     * 
+     * <p><strong>Restrictions:</strong>
+     * <ul>
+     *   <li>OpenAPI endpoints blocked</li>
+     *   <li>Eureka dashboard blocked</li>
+     *   <li>Actuator endpoints blocked (except health)</li>
+     * </ul>
+     * 
+     * @param http ServerHttpSecurity builder
+     * @return Configured security filter chain
+     */
+    @Bean
+    @Profile("prod")
+    public SecurityWebFilterChain prodSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+            .csrf(CsrfSpec::disable)  // Disabled for stateless API
+            .authorizeExchange(exchanges -> exchanges
+                // Public endpoints (minimal)
+                .pathMatchers("/actuator/health").permitAll()
+                .pathMatchers("/fallback/**").permitAll()
+                
+                // Protected API endpoints
+                .pathMatchers("/api/v1/**").authenticated()
+                
+                // Block infrastructure and documentation endpoints in prod
+                .pathMatchers("/openapi", "/openapi/**").denyAll()  // OpenAPI blocked in prod
                 .pathMatchers("/eureka/**").denyAll()
                 .pathMatchers("/actuator/**").denyAll()
                 
