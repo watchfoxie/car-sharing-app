@@ -3,6 +3,10 @@ spring:
     name: api-gateway
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   cloud:
     gateway:
       discovery:
@@ -20,6 +24,14 @@ spring:
           uri: lb://config-service
           predicates:
             - Path=/config/**
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter:
+              replenishRate: 100
+              burstCapacity: 200
+              requestedTokens: 1
+            key-resolver: "#{@ipKeyResolver}"
 
 server:
   port: 8080

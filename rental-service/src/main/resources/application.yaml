@@ -79,6 +79,84 @@ management:
   tracing:
     sampling:
       probability: 1.0
+  health:
+    circuitbreakers:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        '[http.server.requests]': true
+        '[resilience4j.circuitbreaker.calls]': true
+        
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - org.springframework.web.client.HttpClientErrorException.BadRequest
+          - org.springframework.web.client.HttpClientErrorException.Unauthorized
+          - org.springframework.web.client.HttpClientErrorException.Forbidden
+          - org.springframework.web.client.HttpClientErrorException.NotFound
+    instances:
+      pricing-service:
+        baseConfig: default
+        slidingWindowSize: 50
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 15s
+        failureRateThreshold: 60
+        
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        enableRandomizedWait: true
+        randomizedWaitFactor: 0.5
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.net.SocketTimeoutException
+        ignoreExceptions:
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      pricing-service:
+        baseConfig: default
+        maxAttempts: 2
+        waitDuration: 1s
+        
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 25
+        maxWaitDuration: 500ms
+    instances:
+      pricing-service:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 200ms
+        
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s
+        cancelRunningFuture: true
+    instances:
+      pricing-service:
+        timeoutDuration: 5s
 
 springdoc:
   api-docs:
