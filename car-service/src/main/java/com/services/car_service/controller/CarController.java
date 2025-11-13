@@ -168,6 +168,7 @@ public class CarController {
                      content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/my")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'RENTER')")
     public ResponseEntity<Page<CarResponse>> getMyCars(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "0") int page,
@@ -200,6 +201,7 @@ public class CarController {
                      content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PostMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<CarResponse> createCar(
             @Valid @RequestBody CreateCarRequest request,
             @AuthenticationPrincipal Jwt jwt) {
@@ -234,6 +236,7 @@ public class CarController {
                      content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<CarResponse> updateCar(
             @PathVariable Long id,
             @Valid @RequestBody UpdateCarRequest request,
@@ -266,6 +269,7 @@ public class CarController {
                      content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<Void> deleteCar(
             @PathVariable Long id,
             @AuthenticationPrincipal Jwt jwt) {

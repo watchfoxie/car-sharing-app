@@ -1,0 +1,59 @@
+# API Gateway - Staging Configuration (Faza 14 - Testing Environment)
+
+server:
+  port: 8080
+  ssl:
+    enabled: true
+    key-store: file:/etc/car-sharing/certs/api-gateway-staging.p12
+    key-store-password: ${KEYSTORE_PASSWORD} # from Vault
+    key-store-type: PKCS12
+    key-alias: api-gateway-staging
+    
+    # mTLS - require client certificates (self-signed OK for staging)
+    client-auth: need
+    trust-store: file:/etc/car-sharing/certs/truststore-staging.p12
+    trust-store-password: ${TRUSTSTORE_PASSWORD} # from Vault
+    trust-store-type: PKCS12
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Auto-discovery enabled in staging
+          lower-case-service-id: true
+
+# CORS Configuration - Staging (Relaxed but not wildcard)
+cors:
+  allowed-origins: "https://staging.carsharing.com,http://localhost:4200"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  max-age: 3600
+  allow-credentials: true
+
+# Rate Limiting (Relaxed for testing)
+ratelimit:
+  enabled: true
+  default-capacity: 100
+  default-refill-rate: 30
+
+# Actuator (More verbose for debugging)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging (Debug mode for troubleshooting)
+logging:
+  level:
+    root: INFO
+    com.services: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.vault: DEBUG
