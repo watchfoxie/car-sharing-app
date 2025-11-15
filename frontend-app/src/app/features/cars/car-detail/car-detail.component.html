@@ -1,0 +1,248 @@
+<!-- Car Detail Component Template -->
+<div class="car-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading car details...</p>
+  </div>
+
+  <!-- Car Details -->
+  <div *ngIf="!isLoading() && car()" class="detail-content">
+    <!-- Back Button -->
+    <button mat-stroked-button class="back-button" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Cars
+    </button>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+      <!-- Left Column: Images -->
+      <div class="images-section">
+        <mat-card>
+          <!-- Main Image -->
+          <div class="main-image">
+            <img
+              [src]="car()!.images?.[selectedImageIndex()] || 'assets/placeholder-car.jpg'"
+              [alt]="car()!.brand + ' ' + car()!.model"
+            />
+            <div class="status-badge" [ngClass]="getStatusClass(car()!.status)">
+              {{ car()!.status }}
+            </div>
+          </div>
+
+          <!-- Image Thumbnails -->
+          <div *ngIf="car()!.images && car()!.images!.length > 1" class="thumbnails">
+            <button
+              *ngFor="let image of car()!.images; let i = index"
+              class="thumbnail"
+              [class.active]="selectedImageIndex() === i"
+              (click)="selectImage(i)"
+              type="button"
+            >
+              <img [src]="image" [alt]="'Thumbnail ' + (i + 1)" />
+            </button>
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Right Column: Details & Actions -->
+      <div class="details-section">
+        <mat-card>
+          <mat-card-content>
+            <!-- Car Header -->
+            <div class="car-header">
+              <h1 class="car-title">{{ car()!.brand }} {{ car()!.model }}</h1>
+              <div class="car-subtitle">
+                <span class="year">{{ car()!.year }}</span>
+                <mat-chip [ngClass]="getStatusClass(car()!.status)">
+                  {{ car()!.status }}
+                </mat-chip>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Price -->
+            <div class="price-section">
+              <div class="price-label">Daily Rate</div>
+              <div class="price">
+                <span class="amount">${{ car()!.pricePerDay }}</span>
+                <span class="unit">/day</span>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Basic Info -->
+            <div class="info-section">
+              <div class="info-row">
+                <mat-icon>category</mat-icon>
+                <span class="label">Category:</span>
+                <span class="value">{{ car()!.category }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>location_on</mat-icon>
+                <span class="label">Location:</span>
+                <span class="value">{{ car()!.location }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>confirmation_number</mat-icon>
+                <span class="label">License Plate:</span>
+                <span class="value">{{ car()!.licensePlate }}</span>
+              </div>
+            </div>
+
+            <!-- Rating -->
+            <div *ngIf="car()!.averageRating" class="rating-section">
+              <div class="rating-stars">
+                <mat-icon
+                  *ngFor="let filled of getRatingStars(car()!.averageRating!)"
+                  [class.filled]="filled"
+                >
+                  {{ filled ? 'star' : 'star_border' }}
+                </mat-icon>
+              </div>
+              <div class="rating-text">
+                <span class="rating-value">{{ car()!.averageRating!.toFixed(1) }}</span>
+                <span class="rating-count">({{ car()!.totalFeedback }} reviews)</span>
+              </div>
+            </div>
+
+            <!-- Booking Action -->
+            <div class="actions">
+              <button
+                mat-raised-button
+                color="primary"
+                [disabled]="car()!.status !== CarStatus.AVAILABLE || !isAuthenticated()"
+                (click)="bookCar()"
+                class="book-button"
+              >
+                <mat-icon>event_available</mat-icon>
+                {{ car()!.status === CarStatus.AVAILABLE ? 'Book Now' : 'Not Available' }}
+              </button>
+              <p *ngIf="!isAuthenticated()" class="login-hint">
+                <mat-icon>info</mat-icon>
+                Please log in to book this car
+              </p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Specifications & Reviews Tabs -->
+    <mat-card class="tabs-card">
+      <mat-tab-group>
+        <!-- Specifications Tab -->
+        <mat-tab label="Specifications">
+          <div class="tab-content">
+            <div *ngIf="car()!.specifications" class="specifications-grid">
+              <div *ngIf="car()!.specifications!.fuelType" class="spec-item">
+                <mat-icon>local_gas_station</mat-icon>
+                <span class="spec-label">Fuel Type</span>
+                <span class="spec-value">{{ car()!.specifications!.fuelType }}</span>
+              </div>
+              <div *ngIf="car()!.specifications!.transmission" class="spec-item">
+                <mat-icon>settings</mat-icon>
+                <span class="spec-label">Transmission</span>
+                <span class="spec-value">{{ car()!.specifications!.transmission }}</span>
+              </div>
+              <div *ngIf="car()!.specifications!.seats" class="spec-item">
+                <mat-icon>airline_seat_recline_normal</mat-icon>
+                <span class="spec-label">Seats</span>
+                <span class="spec-value">{{ car()!.specifications!.seats }}</span>
+              </div>
+              <div *ngIf="car()!.specifications!.doors" class="spec-item">
+                <mat-icon>sensor_door</mat-icon>
+                <span class="spec-label">Doors</span>
+                <span class="spec-value">{{ car()!.specifications!.doors }}</span>
+              </div>
+              <div *ngIf="car()!.specifications!.color" class="spec-item">
+                <mat-icon>palette</mat-icon>
+                <span class="spec-label">Color</span>
+                <span class="spec-value">{{ car()!.specifications!.color }}</span>
+              </div>
+              <div *ngIf="car()!.specifications!.mileage" class="spec-item">
+                <mat-icon>speed</mat-icon>
+                <span class="spec-label">Mileage</span>
+                <span class="spec-value">{{ car()!.specifications!.mileage }} km</span>
+              </div>
+            </div>
+
+            <!-- Features -->
+            <div *ngIf="car()!.specifications?.features && car()!.specifications!.features!.length > 0" class="features-section">
+              <h3>Features</h3>
+              <div class="features-chips">
+                <mat-chip *ngFor="let feature of car()!.specifications!.features">
+                  <mat-icon>check_circle</mat-icon>
+                  {{ feature }}
+                </mat-chip>
+              </div>
+            </div>
+
+            <p *ngIf="!car()!.specifications" class="no-data">
+              No specifications available
+            </p>
+          </div>
+        </mat-tab>
+
+        <!-- Reviews Tab -->
+        <mat-tab label="Reviews">
+          <div class="tab-content">
+            <div *ngIf="feedbackAggregation()" class="reviews-section">
+              <!-- Rating Distribution -->
+              <div class="rating-distribution">
+                <h3>Rating Distribution</h3>
+                <div class="distribution-bars">
+                  <div class="bar-row" *ngFor="let star of [5, 4, 3, 2, 1]">
+                    <span class="star-label">{{ star }} <mat-icon>star</mat-icon></span>
+                    <div class="bar-container">
+                      <div
+                        class="bar-fill"
+                        [style.width.%]="getRatingPercentage(
+                          feedbackAggregation()!.ratingDistribution['rating' + star],
+                          feedbackAggregation()!.totalFeedback
+                        )"
+                      ></div>
+                    </div>
+                    <span class="bar-count">
+                      {{ feedbackAggregation()!.ratingDistribution['rating' + star] }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <!-- Recent Reviews -->
+              <div class="recent-reviews">
+                <h3>Recent Reviews</h3>
+                <div
+                  *ngFor="let feedback of feedbackList(); trackBy: trackByFeedbackId"
+                  class="review-item"
+                >
+                  <div class="review-header">
+                    <span class="reviewer-name">{{ feedback.renterName || 'Anonymous' }}</span>
+                    <div class="review-rating">
+                      <mat-icon *ngFor="let i of getRatingStars(feedback.rating)">
+                        star
+                      </mat-icon>
+                    </div>
+                  </div>
+                  <p *ngIf="feedback.comment" class="review-comment">{{ feedback.comment }}</p>
+                  <span class="review-date">{{ feedback.createdAt | date: 'mediumDate' }}</span>
+                </div>
+                <p *ngIf="feedbackList().length === 0" class="no-data">
+                  No reviews yet
+                </p>
+              </div>
+            </div>
+            <p *ngIf="!feedbackAggregation()" class="no-data">
+              Loading reviews...
+            </p>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  </div>
+</div>
