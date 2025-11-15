@@ -1,0 +1,175 @@
+<!-- Booking Form Component Template -->
+<div class="booking-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoadingCar()" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading car details...</p>
+  </div>
+
+  <!-- Booking Form -->
+  <div *ngIf="!isLoadingCar() && car()" class="booking-content">
+    <div class="content-grid">
+      <!-- Left: Car Summary -->
+      <mat-card class="car-summary-card">
+        <mat-card-content>
+          <h2 class="section-title">Car Details</h2>
+          <div class="car-info">
+            <img
+              [src]="car()!.images?.[0] || 'assets/placeholder-car.jpg'"
+              [alt]="car()!.brand + ' ' + car()!.model"
+              class="car-image"
+            />
+            <h3 class="car-title">{{ car()!.brand }} {{ car()!.model }}</h3>
+            <p class="car-year">{{ car()!.year }}</p>
+            <div class="car-details">
+              <div class="detail-item">
+                <mat-icon>category</mat-icon>
+                <span>{{ car()!.category }}</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>location_on</mat-icon>
+                <span>{{ car()!.location }}</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>attach_money</mat-icon>
+                <span>${{ car()!.pricePerDay }}/day</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right: Booking Form -->
+      <mat-card class="booking-form-card">
+        <mat-card-content>
+          <h2 class="section-title">Booking Information</h2>
+
+          <form [formGroup]="bookingForm" (ngSubmit)="submitBooking()">
+            <!-- Start Date -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Start Date</mat-label>
+              <input
+                matInput
+                [matDatepicker]="startPicker"
+                formControlName="startDate"
+                [min]="minDate"
+                (dateChange)="calculatePrice()"
+                required
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+              <mat-error *ngIf="bookingForm.get('startDate')?.hasError('required')">
+                Start date is required
+              </mat-error>
+            </mat-form-field>
+
+            <!-- End Date -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>End Date</mat-label>
+              <input
+                matInput
+                [matDatepicker]="endPicker"
+                formControlName="endDate"
+                [min]="bookingForm.get('startDate')?.value || minDate"
+                (dateChange)="calculatePrice()"
+                required
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+              <mat-error *ngIf="bookingForm.get('endDate')?.hasError('required')">
+                End date is required
+              </mat-error>
+              <mat-error *ngIf="bookingForm.hasError('dateRangeInvalid')">
+                End date must be after start date
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Insurance Checkbox -->
+            <mat-checkbox
+              formControlName="includeInsurance"
+              (change)="calculatePrice()"
+              class="insurance-checkbox"
+            >
+              Include Insurance Coverage (+10%)
+            </mat-checkbox>
+
+            <!-- Rental Duration -->
+            <div *ngIf="getNumberOfDays() > 0" class="duration-info">
+              <mat-icon>event</mat-icon>
+              <span>{{ getNumberOfDays() }} day{{ getNumberOfDays() > 1 ? 's' : '' }}</span>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="price-breakdown">
+              <h3>Price Summary</h3>
+
+              <!-- Quick Estimate -->
+              <div *ngIf="estimatedPrice() && !pricingDetails()" class="estimate">
+                <div class="price-row">
+                  <span>Estimated Total:</span>
+                  <span class="price-value">${{ estimatedPrice()?.toFixed(2) }}</span>
+                </div>
+                <p class="price-note">Calculating precise price...</p>
+              </div>
+
+              <!-- Detailed Pricing -->
+              <div *ngIf="pricingDetails() && !isCalculatingPrice()" class="detailed-pricing">
+                <div class="price-row">
+                  <span>Base Price ({{ pricingDetails()!.numberOfDays }} days):</span>
+                  <span>${{ pricingDetails()!.basePrice.toFixed(2) }}</span>
+                </div>
+                <div *ngIf="pricingDetails()!.seasonalMultiplier" class="price-row">
+                  <span>Seasonal Adjustment:</span>
+                  <span>×{{ pricingDetails()!.seasonalMultiplier }}</span>
+                </div>
+                <div *ngIf="pricingDetails()!.weekendMultiplier" class="price-row">
+                  <span>Weekend Premium:</span>
+                  <span>×{{ pricingDetails()!.weekendMultiplier }}</span>
+                </div>
+                <div *ngIf="pricingDetails()?.insuranceFee" class="price-row">
+                  <span>Insurance Fee:</span>
+                  <span>${{ pricingDetails()?.insuranceFee?.toFixed(2) }}</span>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="price-row total">
+                  <span>Total Price:</span>
+                  <span class="total-value">${{ pricingDetails()!.totalPrice.toFixed(2) }}</span>
+                </div>
+              </div>
+
+              <!-- Calculating State -->
+              <div *ngIf="isCalculatingPrice()" class="calculating">
+                <mat-spinner diameter="24"></mat-spinner>
+                <span>Calculating price...</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+              <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="bookingForm.invalid || isSubmitting() || !pricingDetails()"
+                class="submit-button"
+              >
+                <mat-spinner *ngIf="isSubmitting()" diameter="20"></mat-spinner>
+                <mat-icon *ngIf="!isSubmitting()">check_circle</mat-icon>
+                {{ isSubmitting() ? 'Creating Booking...' : 'Confirm Booking' }}
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="cancel()"
+                [disabled]="isSubmitting()"
+              >
+                <mat-icon>cancel</mat-icon>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

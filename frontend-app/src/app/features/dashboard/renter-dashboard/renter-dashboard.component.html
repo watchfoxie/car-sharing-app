@@ -1,0 +1,159 @@
+<!-- Renter Dashboard Template -->
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1 class="text-3xl font-bold">My Rentals</h1>
+    <p class="text-gray-600">Manage your bookings and rental history</p>
+  </div>
+
+  <div *ngIf="isLoading()" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading rentals...</p>
+  </div>
+
+  <div *ngIf="!isLoading()" class="dashboard-content">
+    <mat-tab-group>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Pending Approval
+          <span *ngIf="pendingRentals().length > 0" class="badge">{{ pendingRentals().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <h2>Awaiting Owner Approval</h2>
+          <div *ngIf="pendingRentals().length > 0" class="rentals-list">
+            <mat-card *ngFor="let rental of pendingRentals(); trackBy: trackByRentalId" class="rental-card">
+              <mat-card-content>
+                <div class="rental-header">
+                  <div>
+                    <h3>{{ rental.carBrand }} {{ rental.carModel }}</h3>
+                    <p class="rental-meta">{{ rental.licensePlate }}</p>
+                  </div>
+                  <mat-chip [ngClass]="getStatusClass(rental.status)">{{ rental.status }}</mat-chip>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="rental-details">
+                  <div class="detail-row">
+                    <mat-icon>event</mat-icon>
+                    <span>{{ rental.startDate | date: 'mediumDate' }} - {{ rental.endDate | date: 'mediumDate' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>attach_money</mat-icon>
+                    <span>${{ rental.totalPrice }}</span>
+                  </div>
+                </div>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button (click)="viewCarDetails(rental.carId)">
+                  <mat-icon>visibility</mat-icon>
+                  View Car
+                </button>
+                <button mat-stroked-button color="warn" (click)="cancelRental(rental.id)">
+                  <mat-icon>cancel</mat-icon>
+                  Cancel
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+          <div *ngIf="pendingRentals().length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <h3>No pending bookings</h3>
+            <p>Your booking requests will appear here</p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Active Rentals
+          <span *ngIf="activeRentals().length > 0" class="badge">{{ activeRentals().length }}</span>
+        </ng-template>
+        <div class="tab-content">
+          <h2>Your Active Rentals</h2>
+          <div *ngIf="activeRentals().length > 0" class="rentals-list">
+            <mat-card *ngFor="let rental of activeRentals(); trackBy: trackByRentalId" class="rental-card">
+              <mat-card-content>
+                <div class="rental-header">
+                  <div>
+                    <h3>{{ rental.carBrand }} {{ rental.carModel }}</h3>
+                    <p class="rental-meta">{{ rental.licensePlate }}</p>
+                  </div>
+                  <mat-chip [ngClass]="getStatusClass(rental.status)">{{ rental.status }}</mat-chip>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="rental-details">
+                  <div class="detail-row">
+                    <mat-icon>event</mat-icon>
+                    <span>{{ rental.startDate | date: 'mediumDate' }} - {{ rental.endDate | date: 'mediumDate' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>attach_money</mat-icon>
+                    <span>${{ rental.totalPrice }}</span>
+                  </div>
+                </div>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button (click)="viewCarDetails(rental.carId)">
+                  <mat-icon>visibility</mat-icon>
+                  View Car
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+          <div *ngIf="activeRentals().length === 0" class="empty-state">
+            <mat-icon>event_busy</mat-icon>
+            <h3>No active rentals</h3>
+            <p>You don't have any active rentals</p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Completed">
+        <div class="tab-content">
+          <h2>Rental History</h2>
+          <div *ngIf="completedRentals().length > 0" class="rentals-list">
+            <mat-card *ngFor="let rental of completedRentals(); trackBy: trackByRentalId" class="rental-card completed">
+              <mat-card-content>
+                <div class="rental-header">
+                  <div>
+                    <h3>{{ rental.carBrand }} {{ rental.carModel }}</h3>
+                    <p class="rental-meta">{{ rental.licensePlate }}</p>
+                  </div>
+                  <mat-chip [ngClass]="getStatusClass(rental.status)">{{ rental.status }}</mat-chip>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="rental-details">
+                  <div class="detail-row">
+                    <mat-icon>event</mat-icon>
+                    <span>{{ rental.startDate | date: 'mediumDate' }} - {{ rental.endDate | date: 'mediumDate' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>attach_money</mat-icon>
+                    <span>${{ rental.totalPrice }}</span>
+                  </div>
+                </div>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button (click)="viewCarDetails(rental.carId)">
+                  <mat-icon>visibility</mat-icon>
+                  View Car
+                </button>
+                <button mat-raised-button color="accent" (click)="leaveFeedback(rental.id)">
+                  <mat-icon>rate_review</mat-icon>
+                  Leave Feedback
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+          <div *ngIf="completedRentals().length === 0" class="empty-state">
+            <mat-icon>history</mat-icon>
+            <h3>No rental history</h3>
+            <p>Your completed rentals will appear here</p>
+            <button mat-raised-button color="primary" routerLink="/cars">
+              <mat-icon>search</mat-icon>
+              Browse Cars
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>
