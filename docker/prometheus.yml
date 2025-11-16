@@ -1,0 +1,88 @@
+# Prometheus configuration pentru Car Sharing App
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'car-sharing-local'
+    environment: 'dev'
+
+# Alertmanager configuration (optional pentru local)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: []
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "alerts.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Discovery Service (Eureka)
+  - job_name: 'discovery-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['discovery-service:8761']
+        labels:
+          application: 'discovery-service'
+
+  # Config Service
+  - job_name: 'config-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['config-service:8888']
+        labels:
+          application: 'config-service'
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:8080']
+        labels:
+          application: 'api-gateway'
+
+  # Identity Adapter
+  - job_name: 'identity-adapter'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['identity-adapter:8081']
+        labels:
+          application: 'identity-adapter'
+
+  # Car Service
+  - job_name: 'car-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['car-service:8082']
+        labels:
+          application: 'car-service'
+
+  # Pricing Rules Service
+  - job_name: 'pricing-rules-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['pricing-rules-service:8083']
+        labels:
+          application: 'pricing-rules-service'
+
+  # Rental Service
+  - job_name: 'rental-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['rental-service:8084']
+        labels:
+          application: 'rental-service'
+
+  # Feedback Service
+  - job_name: 'feedback-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['feedback-service:8085']
+        labels:
+          application: 'feedback-service'

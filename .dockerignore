@@ -1,0 +1,47 @@
+# Maven build artifacts
+target/
+**/target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Logs
+*.log
+logs/
+
+# Documentation (nu e nevoie în imagine)
+docs/
+*.md
+!README.md
+
+# Test files (pentru imagini de produc\u021bie)
+src/test/
+**/src/test/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Node modules (pentru frontend)
+node_modules/
+**/node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp

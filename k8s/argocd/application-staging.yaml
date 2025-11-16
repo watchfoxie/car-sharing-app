@@ -1,0 +1,91 @@
+# ArgoCD Application pentru Car Sharing App - Staging Environment
+# Blue/Green Deployment Strategy
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: car-sharing-staging
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/org/car-sharing-app.git
+    targetRevision: staging
+    path: k8s/overlays/staging
+    
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: car-sharing-staging
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Blue/Green strategy - manual promotion required
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false
+---
+# Blue/Green Service configuration
+apiVersion: v1
+kind: Service
+metadata:
+  name: car-sharing-gateway-blue
+  namespace: car-sharing-staging
+  labels:
+    app: api-gateway
+    version: blue
+spec:
+  selector:
+    app: api-gateway
+    version: blue
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: car-sharing-gateway-green
+  namespace: car-sharing-staging
+  labels:
+    app: api-gateway
+    version: green
+spec:
+  selector:
+    app: api-gateway
+    version: green
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# Active service - switch between blue and green
+apiVersion: v1
+kind: Service
+metadata:
+  name: car-sharing-gateway
+  namespace: car-sharing-staging
+  labels:
+    app: api-gateway
+spec:
+  selector:
+    app: api-gateway
+    version: blue  # Change to 'green' for switching
+  ports:
+    - port: 8080
+      targetPort: 8080
