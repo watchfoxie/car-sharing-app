@@ -44,6 +44,7 @@ public class AccountService {
      * @throws ResourceNotFoundException if account not found
      */
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "accountProfiles", key = "#accountId")
     public AccountProfileResponse getAccountProfile(String accountId) {
         log.debug("Fetching account profile for ID: {}", accountId);
         
@@ -66,6 +67,7 @@ public class AccountService {
      * @throws ResourceNotFoundException if account not found
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(cacheNames = "accountProfiles", key = "#accountId")
     public AccountProfileResponse updateAccountProfile(String accountId, UpdateAccountProfileRequest request) {
         log.debug("Updating account profile for ID: {} with request: {}", accountId, request);
         
@@ -88,6 +90,7 @@ public class AccountService {
      * @return true if account exists
      */
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "accountExistence", key = "'exists:' + #accountId")
     public boolean accountExists(String accountId) {
         return accountRepository.existsById(accountId);
     }
@@ -99,6 +102,7 @@ public class AccountService {
      * @return true if username is available
      */
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "accountExistence", key = "'username:' + #username.toLowerCase()")
     public boolean isUsernameAvailable(String username) {
         return !accountRepository.existsByUsername(username);
     }
@@ -110,6 +114,7 @@ public class AccountService {
      * @return true if email is available
      */
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "accountExistence", key = "'email:' + #email.toLowerCase()")
     public boolean isEmailAvailable(String email) {
         return !accountRepository.existsByEmail(email);
     }

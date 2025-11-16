@@ -143,4 +143,37 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
      * @return count of rentals
      */
     long countByStatus(RentalStatus status);
+
+    /**
+     * Find rentals for a specific renter using cursor-based (keyset) pagination.
+     * <p>
+     * <strong>Keyset Pagination Benefits:</strong>
+     * <ul>
+     *   <li>Avoids OFFSET performance degradation for large datasets (10k+ rows)</li>
+     *   <li>Consistent results during concurrent writes (no phantom reads)</li>
+     *   <li>Leverages composite index (idx_history_car_status_pickup) for efficient scanning</li>
+     * </ul>
+     * </p>
+     * <p>
+     * <strong>Usage:</strong>
+     * First page: pass lastSeenId=null, lastSeenPickupDatetime=null
+     * Next pages: pass id and pickup_datetime from last item of previous page
+     * </p>
+     *
+     * @param renterId              the renter's account ID
+     * @param lastSeenId            the ID of the last seen rental (null for first page)
+     * @param lastSeenPickupDatetime the pickup_datetime of the last seen rental (null for first page)
+     * @param pageable              pagination parameters (page size only, page number ignored)
+     * @return List of rentals (use .size() == pageable.getPageSize() to check if more pages exist)
+     */
+    @Query("SELECT r FROM Rental r WHERE r.renterId = :renterId " +
+            "AND (:lastSeenPickupDatetime IS NULL OR r.pickupDatetime < :lastSeenPickupDatetime " +
+            "     OR (r.pickupDatetime = :lastSeenPickupDatetime AND r.id < :lastSeenId)) " +
+            "ORDER BY r.pickupDatetime DESC, r.id DESC")
+    List<Rental> findByRenterIdCursor(
+            @Param("renterId") String renterId,
+            @Param("lastSeenId") Long lastSeenId,
+            @Param("lastSeenPickupDatetime") Instant lastSeenPickupDatetime,
+            Pageable pageable
+    );
 }

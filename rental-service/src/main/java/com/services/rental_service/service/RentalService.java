@@ -10,6 +10,7 @@ import com.services.rental_service.exception.InvalidStateTransitionException;
 import com.services.rental_service.exception.ResourceNotFoundException;
 import com.services.rental_service.exception.ValidationException;
 import com.services.rental_service.mapper.RentalMapper;
+import com.services.rental_service.sse.RentalStatusSseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -53,6 +54,7 @@ public class RentalService {
 
     private final RentalRepository rentalRepository;
     private final RentalMapper rentalMapper;
+    private final RentalStatusSseService sseService;
     // TODO: Inject PricingServiceClient in future phase (Faza 12)
 
     /**
@@ -67,6 +69,7 @@ public class RentalService {
      * @throws ResourceNotFoundException if rental not found
      * @throws BusinessException         if access denied (not owner/renter)
      */
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "rentalDetails", key = "#rentalId")
     public RentalResponse getRentalById(Long rentalId, String accountId) {
         log.debug("Fetching rental by ID: {} for account: {}", rentalId, accountId);
 
@@ -138,6 +141,7 @@ public class RentalService {
      */
     @Transactional
     @RetryOnConstraintViolation(maxAttempts = 3, initialBackoffMs = 100, backoffMultiplier = 2.0)
+    @org.springframework.cache.annotation.CacheEvict(cacheNames = "activeRentals", allEntries = true)
     public RentalResponse createRental(CreateRentalRequest request, String renterId) {
         log.info("Creating rental for renter: {}, car: {}, period: {} to {}",
                 renterId, request.getCarsId(), request.getPickupDatetime(), request.getReturnDatetime());
@@ -180,6 +184,13 @@ public class RentalService {
 
         Rental savedRental = rentalRepository.save(rental);
         log.info("Rental created successfully with ID: {}", savedRental.getId());
+
+        // Broadcast SSE event
+        String eventData = String.format(
+            "{\"rentalId\": %d, \"renterId\": \"%s\", \"carsId\": %d, \"status\": \"%s\", \"timestamp\": \"%s\"}",
+            savedRental.getId(), savedRental.getRenterId(), savedRental.getCarsId(), 
+            savedRental.getStatus(), Instant.now());
+        sseService.broadcastStatusUpdate("rental-confirmed", eventData);
 
         return rentalMapper.toResponse(savedRental);
     }
@@ -311,6 +322,7 @@ public class RentalService {
      * @throws BusinessException                if access denied (not car owner)
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(cacheNames = {"activeRentals", "rentalDetails"}, allEntries = true)
     public RentalResponse approveReturn(Long rentalId, ApproveReturnRequest request, String operatorId) {
         log.info("Approving return for rental: {}, operator: {}", rentalId, operatorId);
 
@@ -353,6 +365,7 @@ public class RentalService {
      * @throws BusinessException                if access denied
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(cacheNames = {"activeRentals", "rentalDetails"}, key = "#rentalId")
     public RentalResponse cancelRental(Long rentalId, String renterId) {
         log.info("Cancelling rental: {}, renter: {}", rentalId, renterId);
 
