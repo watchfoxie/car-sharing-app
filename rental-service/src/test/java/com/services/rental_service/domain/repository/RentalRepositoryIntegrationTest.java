@@ -74,6 +74,7 @@ class RentalRepositoryIntegrationTest {
     void testSaveAndRetrieveRental() {
         // Given
         Rental rental = createSampleRental(RENTER_ID, CAR_ID, NOW, NOW.plus(2, ChronoUnit.HOURS));
+        rental.setStatus(RentalStatus.CONFIRMED);
 
         // When
         Rental saved = rentalRepository.save(rental);

@@ -46,7 +46,8 @@ public interface CarRepository extends JpaRepository<Car, Long> {
      * @param registrationNumber the registration number to search for
      * @return an Optional containing the car if found
      */
-    Optional<Car> findByRegistrationNumber(String registrationNumber);
+       @Query("SELECT c FROM Car c WHERE LOWER(c.registrationNumber) = LOWER(:registrationNumber)")
+       Optional<Car> findByRegistrationNumber(@Param("registrationNumber") String registrationNumber);
 
     /**
      * Checks if a car with the given registration number exists (case-insensitive).
@@ -54,7 +55,9 @@ public interface CarRepository extends JpaRepository<Car, Long> {
      * @param registrationNumber the registration number to check
      * @return true if a car exists with this registration number
      */
-    boolean existsByRegistrationNumber(String registrationNumber);
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Car c " +
+           "WHERE LOWER(c.registrationNumber) = LOWER(:registrationNumber)")
+    boolean existsByRegistrationNumber(@Param("registrationNumber") String registrationNumber);
 
     /**
      * Finds all cars owned by a specific account.
@@ -123,8 +126,8 @@ public interface CarRepository extends JpaRepository<Car, Long> {
      * @return a page of matching cars
      */
     @Query("SELECT c FROM Car c WHERE c.shareable = true AND c.archived = false " +
-           "AND (:brand IS NULL OR LOWER(c.brand) = LOWER(:brand)) " +
-           "AND (:category IS NULL OR c.category = :category) " +
+           "AND LOWER(c.brand) = LOWER(COALESCE(:brand, c.brand)) " +
+           "AND c.category = COALESCE(:category, c.category) " +
            "AND c.dailyPrice BETWEEN :minPrice AND :maxPrice")
     Page<Car> findPublicCarsWithFilters(@Param("brand") String brand,
                                          @Param("category") VehicleCategory category,

@@ -9,6 +9,7 @@ import com.services.rental_service.exception.InvalidStateTransitionException;
 import com.services.rental_service.exception.ResourceNotFoundException;
 import com.services.rental_service.exception.ValidationException;
 import com.services.rental_service.mapper.RentalMapper;
+import com.services.rental_service.sse.RentalStatusSseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -64,6 +66,9 @@ class RentalServiceTest {
 
     @Mock
     private RentalMapper rentalMapper;
+
+    @Mock
+    private RentalStatusSseService sseService;
 
     @InjectMocks
     private RentalService rentalService;
@@ -251,6 +256,7 @@ class RentalServiceTest {
         verify(rentalRepository, times(1)).findByRenterIdAndIdempotencyKey(renterId, createRequest.getIdempotencyKey());
         verify(rentalRepository, times(1)).countOverlappingActiveRentals(anyLong(), any(Instant.class), any(Instant.class));
         verify(rentalRepository, times(1)).save(any(Rental.class));
+        verify(sseService, times(1)).broadcastStatusUpdate(eq("rental-confirmed"), anyString());
     }
 
     @Test

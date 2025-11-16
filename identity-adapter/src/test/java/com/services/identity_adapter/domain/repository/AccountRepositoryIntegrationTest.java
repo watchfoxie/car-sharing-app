@@ -7,11 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+
+import com.services.identity_adapter.testcontainers.PostgresTestContainer;
 
 import java.util.Optional;
 
@@ -27,18 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2025-11-05
  */
 @DataJpaTest
-@Testcontainers
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SuppressWarnings("resource")
-class AccountRepositoryIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("car_sharing_test")
-            .withUsername("test")
-            .withPassword("test");
+class AccountRepositoryIntegrationTest extends PostgresTestContainer {
 
     @Autowired
     private AccountRepository accountRepository;
@@ -48,6 +38,7 @@ class AccountRepositoryIntegrationTest {
     @BeforeEach
     void setUp() {
         accountRepository.deleteAll();
+        accountRepository.flush();
         
         testAccount = Account.builder()
                 .id("auth0|test123")
@@ -58,6 +49,10 @@ class AccountRepositoryIntegrationTest {
                 .phoneNumber("+40712345678")
                 .enabled(true)
                 .build();
+    }
+
+    private Account persistDefaultAccount() {
+        return accountRepository.saveAndFlush(testAccount);
     }
 
     @Test
@@ -78,7 +73,7 @@ class AccountRepositoryIntegrationTest {
     @DisplayName("Should find account by username case-insensitively (citext)")
     void shouldFindByUsernameCaseInsensitive() {
         // Given
-        accountRepository.save(testAccount);
+        persistDefaultAccount();
         
         // When - search with different case
         Optional<Account> foundUpper = accountRepository.findByUsername("JOHN.DOE");
@@ -98,7 +93,7 @@ class AccountRepositoryIntegrationTest {
     @DisplayName("Should find account by email case-insensitively (citext)")
     void shouldFindByEmailCaseInsensitive() {
         // Given
-        accountRepository.save(testAccount);
+        persistDefaultAccount();
         
         // When - search with different case
         Optional<Account> foundUpper = accountRepository.findByEmail("JOHN.DOE@EXAMPLE.COM");
@@ -116,7 +111,7 @@ class AccountRepositoryIntegrationTest {
     @DisplayName("Should check username existence case-insensitively")
     void shouldCheckUsernameExistsCaseInsensitive() {
         // Given
-        accountRepository.save(testAccount);
+        persistDefaultAccount();
         
         // When/Then - all case variations should return true
         assertThat(accountRepository.existsByUsername("john.doe")).isTrue();
@@ -129,7 +124,7 @@ class AccountRepositoryIntegrationTest {
     @DisplayName("Should check email existence case-insensitively")
     void shouldCheckEmailExistsCaseInsensitive() {
         // Given
-        accountRepository.save(testAccount);
+        persistDefaultAccount();
         
         // When/Then - all case variations should return true
         assertThat(accountRepository.existsByEmail("john.doe@example.com")).isTrue();
@@ -143,7 +138,7 @@ class AccountRepositoryIntegrationTest {
     void shouldFindEnabledAccountsOnly() {
         // Given
         testAccount.setEnabled(false);
-        accountRepository.save(testAccount);
+        persistDefaultAccount();
         
         // When
         Optional<Account> enabledFound = accountRepository.findEnabledByUsername("john.doe");
@@ -153,7 +148,7 @@ class AccountRepositoryIntegrationTest {
         
         // Update to enabled
         testAccount.setEnabled(true);
-        accountRepository.save(testAccount);
+        persistDefaultAccount();
         
         enabledFound = accountRepository.findEnabledByUsername("john.doe");
         assertThat(enabledFound).isPresent();
@@ -178,8 +173,8 @@ class AccountRepositoryIntegrationTest {
                 .build();
         
         // When
-        accountRepository.save(account1);
-        accountRepository.save(account2);
+        accountRepository.saveAndFlush(account1);
+        accountRepository.saveAndFlush(account2);
         
         // Then - both should save successfully
         assertThat(accountRepository.findById("auth0|test1")).isPresent();
@@ -190,12 +185,12 @@ class AccountRepositoryIntegrationTest {
     @DisplayName("Should update last modified fields on update")
     void shouldUpdateLastModifiedFieldsOnUpdate() {
         // Given
-        Account savedAccount = accountRepository.save(testAccount);
+        Account savedAccount = persistDefaultAccount();
         assertThat(savedAccount.getLastModifiedDate()).isNull();
         
         // When - update account
         savedAccount.setFirstName("Jane");
-        Account updatedAccount = accountRepository.save(savedAccount);
+        Account updatedAccount = accountRepository.saveAndFlush(savedAccount);
         
         // Then
         assertThat(updatedAccount.getFirstName()).isEqualTo("Jane");

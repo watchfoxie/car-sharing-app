@@ -57,6 +57,26 @@ END
 $$ LANGUAGE plpgsql;
 
 -- =====================================================
+-- 3b) Immutable helper for rental period generation
+-- =====================================================
+
+-- Generated columns require immutable expressions; wrap the range builder
+CREATE OR REPLACE FUNCTION rental.build_rental_period(
+  pickup timestamptz,
+  dropoff timestamptz
+) RETURNS tstzrange
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT CASE
+    WHEN pickup IS NULL THEN NULL
+    WHEN dropoff IS NULL THEN tstzrange(pickup, pickup + INTERVAL '100 years', '[)')
+    WHEN dropoff >= pickup THEN tstzrange(pickup, dropoff, '[)')
+    ELSE NULL
+  END;
+$$;
+
+-- =====================================================
 -- 4) Main Table: rental.cars_rental_history
 -- =====================================================
 
@@ -73,7 +93,7 @@ CREATE TABLE IF NOT EXISTS rental.cars_rental_history (
 
   -- Generated column for EXCLUDE constraint (TSTZRANGE: [pickup, return) with upper bound defaulting to 100 years)
   rental_period TSTZRANGE GENERATED ALWAYS AS (
-    tstzrange(pickup_datetime, COALESCE(return_datetime, pickup_datetime + INTERVAL '100 years'), '[)')
+    rental.build_rental_period(pickup_datetime, return_datetime)
   ) STORED,
 
   -- Location fields
@@ -223,25 +243,31 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA rental TO rental_service;
 
 COMMENT ON SCHEMA rental IS 'Rental Service schema: manages car rental lifecycle with FSM and conflict prevention';
 
-COMMENT ON TABLE rental.cars_rental_history IS 
-  'Stores complete rental history with FSM (PENDING → CONFIRMED → PICKED_UP → RETURNED → RETURN_APPROVED). ' ||
-  'EXCLUDE constraint prevents overlapping active rentals on same car.';
+COMMENT ON TABLE rental.cars_rental_history IS $$
+Stores complete rental history with FSM (PENDING → CONFIRMED → PICKED_UP → RETURNED → RETURN_APPROVED).
+EXCLUDE constraint prevents overlapping active rentals on same car.
+$$;
 
-COMMENT ON COLUMN rental.cars_rental_history.rental_period IS 
-  'Generated TSTZRANGE column: [pickup_datetime, return_datetime). ' ||
-  'Upper bound defaults to 100 years for open-ended rentals. Used by EXCLUDE constraint.';
+COMMENT ON COLUMN rental.cars_rental_history.rental_period IS $$
+Generated TSTZRANGE column: [pickup_datetime, return_datetime).
+Upper bound defaults to 100 years for open-ended rentals. Used by EXCLUDE constraint.
+$$;
 
-COMMENT ON COLUMN rental.cars_rental_history.idempotency_key IS 
-  'Idempotency key for duplicate request prevention. Unique per (renter_id, idempotency_key).';
+COMMENT ON COLUMN rental.cars_rental_history.idempotency_key IS $$
+Idempotency key for duplicate request prevention. Unique per (renter_id, idempotency_key).
+$$;
 
-COMMENT ON COLUMN rental.cars_rental_history.status IS 
-  'FSM state: PENDING → CONFIRMED → PICKED_UP → RETURNED → RETURN_APPROVED (or CANCELLED before PICKED_UP)';
+COMMENT ON COLUMN rental.cars_rental_history.status IS $$
+FSM state: PENDING → CONFIRMED → PICKED_UP → RETURNED → RETURN_APPROVED (or CANCELLED before PICKED_UP)
+$$;
 
-COMMENT ON CONSTRAINT ex_cars_rental_no_overlap ON rental.cars_rental_history IS 
-  'Prevents overlapping active rentals (CONFIRMED, PICKED_UP) on same car using GiST && operator on rental_period';
+COMMENT ON CONSTRAINT ex_cars_rental_no_overlap ON rental.cars_rental_history IS $$
+Prevents overlapping active rentals (CONFIRMED, PICKED_UP) on same car using GiST && operator on rental_period
+$$;
 
-COMMENT ON INDEX uq_rental_idem IS 
-  'Ensures idempotent rental creation: (renter_id, idempotency_key) uniqueness';
+COMMENT ON INDEX uq_rental_idem IS $$
+Ensures idempotent rental creation: (renter_id, idempotency_key) uniqueness
+$$;
 
 -- =====================================================
 -- End of V1__init.sql

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -65,6 +66,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DisplayName("PricingRuleRepository Integration Tests")
 @SuppressWarnings("resource")
+@Import(com.services.pricing_rules_service.config.JpaAuditingConfig.class)
 class PricingRuleRepositoryIntegrationTest {
 
     @Container
@@ -79,6 +81,9 @@ class PricingRuleRepositoryIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.flyway.url", postgres::getJdbcUrl);
+        registry.add("spring.flyway.user", postgres::getUsername);
+        registry.add("spring.flyway.password", postgres::getPassword);
         registry.add("spring.flyway.schemas", () -> "pricing");
         registry.add("spring.jpa.properties.hibernate.default_schema", () -> "pricing");
     }
@@ -140,7 +145,8 @@ class PricingRuleRepositoryIntegrationTest {
 
         // When
         savedRule.setPricePerUnit(new BigDecimal("90.00"));
-        PricingRule updatedRule = pricingRuleRepository.save(savedRule);
+        pricingRuleRepository.saveAndFlush(savedRule);
+        PricingRule updatedRule = pricingRuleRepository.findById(savedRule.getId()).orElseThrow();
 
         // Then
         assertThat(updatedRule.getPricePerUnit()).isEqualByComparingTo(new BigDecimal("90.00"));
@@ -198,7 +204,7 @@ class PricingRuleRepositoryIntegrationTest {
         // When/Then
         assertThatThrownBy(() -> pricingRuleRepository.save(rule2))
             .isInstanceOf(DataIntegrityViolationException.class)
-            .hasMessageContaining("uk_pricing_rule_no_overlap");
+            .hasMessageContaining("ex_pricing_no_overlap");
     }
 
     @Test

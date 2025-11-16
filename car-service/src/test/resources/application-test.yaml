@@ -8,9 +8,9 @@ spring:
 
   # Datasource Configuration (Testcontainers @ServiceConnection)
   datasource:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    # Testcontainers will override this with actual container JDBC URL
-    url: jdbc:tc:postgresql:16-alpine:///car_sharing_test
+    driver-class-name: org.postgresql.Driver
+    # Default fallback URL (overwritten via Testcontainers DynamicPropertySource)
+    url: jdbc:postgresql://localhost:5432/car_sharing_test
     username: test
     password: test
 

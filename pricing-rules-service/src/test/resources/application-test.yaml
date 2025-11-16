@@ -18,6 +18,9 @@ spring:
     schemas: pricing
     baseline-on-migrate: true
     validate-on-migrate: true
+    locations:
+      - classpath:db/migration
+      - classpath:db/migration/pricing
   
   cache:
     type: none  # Disable caching in tests
@@ -28,8 +31,26 @@ spring:
         jwt:
           issuer-uri: http://localhost:8180/realms/car-sharing  # Mock for tests
 
+  cloud:
+    vault:
+      enabled: false
+
+  quartz:
+    job-store-type: memory
+    auto-startup: false
+
+  autoconfigure:
+    exclude:
+      - org.springframework.cloud.vault.config.VaultAutoConfiguration
+      - org.springframework.cloud.vault.config.VaultReactiveAutoConfiguration
+
 logging:
   level:
     '[com.services.pricing_rules_service]': DEBUG
     '[org.hibernate.SQL]': DEBUG
     '[org.hibernate.type.descriptor.sql.BasicBinder]': TRACE
+
+management:
+  health:
+    vault:
+      enabled: false

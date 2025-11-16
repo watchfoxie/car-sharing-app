@@ -18,6 +18,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         '[default_schema]': rental
+        type:
+          '[preferred_enum_type]': postgres_enum
         jdbc:
           '[time_zone]': UTC
         # Transaction isolation level for concurrency control

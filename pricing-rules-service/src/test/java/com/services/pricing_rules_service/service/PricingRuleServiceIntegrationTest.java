@@ -78,6 +78,9 @@ class PricingRuleServiceIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.flyway.url", postgres::getJdbcUrl);
+        registry.add("spring.flyway.user", postgres::getUsername);
+        registry.add("spring.flyway.password", postgres::getPassword);
         registry.add("spring.flyway.schemas", () -> "pricing");
         registry.add("spring.jpa.properties.hibernate.default_schema", () -> "pricing");
     }
@@ -465,15 +468,15 @@ class PricingRuleServiceIntegrationTest {
         // STANDARD category pricing rules
         pricingRuleRepository.save(createPricingRule(
             PricingUnit.DAY, VehicleCategory.STANDARD, "50.00",
-            Duration.ofMinutes(30), Duration.ofDays(30), now, future
+            Duration.ZERO, Duration.ofDays(30), now, future
         ));
         pricingRuleRepository.save(createPricingRule(
             PricingUnit.HOUR, VehicleCategory.STANDARD, "12.00",
-            Duration.ofMinutes(30), Duration.ofDays(30), now, future
+            Duration.ZERO, Duration.ofDays(30), now, future
         ));
         pricingRuleRepository.save(createPricingRule(
             PricingUnit.MINUTE, VehicleCategory.STANDARD, "0.30",
-            Duration.ofMinutes(30), Duration.ofDays(30), now, future
+            Duration.ofMinutes(1), Duration.ofDays(30), now, future
         ));
     }
 
@@ -484,15 +487,15 @@ class PricingRuleServiceIntegrationTest {
         // PREMIUM category pricing rules (higher rates)
         pricingRuleRepository.save(createPricingRule(
             PricingUnit.DAY, VehicleCategory.PREMIUM, "100.00",
-            Duration.ofMinutes(30), Duration.ofDays(30), now, future
+            Duration.ZERO, Duration.ofDays(30), now, future
         ));
         pricingRuleRepository.save(createPricingRule(
             PricingUnit.HOUR, VehicleCategory.PREMIUM, "20.00",
-            Duration.ofMinutes(30), Duration.ofDays(30), now, future
+            Duration.ZERO, Duration.ofDays(30), now, future
         ));
         pricingRuleRepository.save(createPricingRule(
             PricingUnit.MINUTE, VehicleCategory.PREMIUM, "0.60",
-            Duration.ofMinutes(30), Duration.ofDays(30), now, future
+            Duration.ofMinutes(1), Duration.ofDays(30), now, future
         ));
     }
 

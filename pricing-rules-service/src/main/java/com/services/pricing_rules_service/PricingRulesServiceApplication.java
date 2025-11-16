@@ -4,7 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -29,7 +28,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * <ul>
  *   <li>{@code @SpringBootApplication} - Standard Spring Boot application configuration</li>
  *   <li>{@code @EnableDiscoveryClient} - Registers with Eureka for service discovery</li>
- *   <li>{@code @EnableJpaAuditing} - Enables automatic audit field population (created/modified timestamps and actors)</li>
  *   <li>{@code @EnableCaching} - Activates Spring Cache abstraction for Redis and Caffeine</li>
  *   <li>{@code @EnableScheduling} - Enables Quartz-based scheduled jobs (rule expiration, cache warm-up)</li>
  * </ul>
@@ -56,7 +54,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableJpaAuditing
 @EnableCaching
 @EnableScheduling
 public class PricingRulesServiceApplication {

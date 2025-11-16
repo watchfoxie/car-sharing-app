@@ -26,8 +26,9 @@ CREATE SCHEMA IF NOT EXISTS car;
 -- btree_gist: Required for EXCLUDE constraints with '=' operators
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
--- citext: Case-insensitive text type for registration_number
-CREATE EXTENSION IF NOT EXISTS citext;
+-- Install citext in the public schema so PostgreSQL exposes it without schema qualifiers
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+ALTER EXTENSION citext SET SCHEMA public;
 
 -- =====================================================
 -- 3. Enum Types (shared with other services)
@@ -165,9 +166,13 @@ CREATE INDEX IF NOT EXISTS idx_car_outbox_new ON car.outbox_event(status) WHERE 
 -- Enable RLS on cars table
 ALTER TABLE car.cars ENABLE ROW LEVEL SECURITY;
 
--- Policy: Owners can UPDATE/DELETE their own cars
-CREATE POLICY car_cars_update_delete ON car.cars
-  FOR UPDATE, DELETE USING (owner_id = current_setting('app.current_account_id', true));
+-- Policy: Owners can UPDATE their own cars
+CREATE POLICY car_cars_update ON car.cars
+  FOR UPDATE USING (owner_id = current_setting('app.current_account_id', true));
+
+-- Policy: Owners can DELETE their own cars
+CREATE POLICY car_cars_delete ON car.cars
+  FOR DELETE USING (owner_id = current_setting('app.current_account_id', true));
 
 -- Policy: Owners can INSERT cars with their own owner_id
 CREATE POLICY car_cars_insert ON car.cars

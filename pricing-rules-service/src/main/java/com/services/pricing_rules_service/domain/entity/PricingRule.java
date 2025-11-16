@@ -14,6 +14,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * JPA Entity representing a pricing rule for vehicle rentals.
@@ -94,6 +96,7 @@ public class PricingRule {
      * during the rule's effective period (enforced by EXCLUDE constraint).</p>
      */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, length = 20)
     @NotNull(message = "Pricing unit is required")
     private PricingUnit unit;
@@ -104,6 +107,7 @@ public class PricingRule {
      * <p>Synchronized with {@code car.cars.category} enum.</p>
      */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "vehicle_category", nullable = false, length = 20)
     @NotNull(message = "Vehicle category is required")
     private VehicleCategory vehicleCategory;
@@ -124,6 +128,7 @@ public class PricingRule {
      * <p>If set, rentals shorter than this duration will be rejected or rounded up.
      * Example: {@code Duration.ofHours(1)} means rentals must be at least 1 hour.</p>
      */
+    @JdbcTypeCode(SqlTypes.INTERVAL_SECOND)
     @Column(name = "min_duration")
     private Duration minDuration;
 
@@ -133,6 +138,7 @@ public class PricingRule {
      * <p>If set, rentals longer than this duration will be rejected or require special approval.
      * Example: {@code Duration.ofDays(7)} means rentals cannot exceed 7 days.</p>
      */
+    @JdbcTypeCode(SqlTypes.INTERVAL_SECOND)
     @Column(name = "max_duration")
     private Duration maxDuration;
 
@@ -142,6 +148,7 @@ public class PricingRule {
      * <p>If set, cancellations within this window may incur penalties.
      * Example: {@code Duration.ofHours(2)} means free cancellations only if done 2+ hours before pickup.</p>
      */
+    @JdbcTypeCode(SqlTypes.INTERVAL_SECOND)
     @Column(name = "cancellation_window")
     private Duration cancellationWindow;
 
@@ -271,10 +278,7 @@ public class PricingRule {
         if (minDuration != null && duration.compareTo(minDuration) < 0) {
             return false;
         }
-        if (maxDuration != null && duration.compareTo(maxDuration) > 0) {
-            return false;
-        }
-        return true;
+        return maxDuration == null || duration.compareTo(maxDuration) <= 0;
     }
 
     /**

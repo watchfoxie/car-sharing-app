@@ -31,7 +31,6 @@ class TestcontainersConfiguration {
     }
 
     @Bean
-    @ServiceConnection(name = "openzipkin/zipkin")
     @SuppressWarnings("resource")
     GenericContainer<?> zipkinContainer() {
         return new GenericContainer<>(DockerImageName.parse("openzipkin/zipkin:latest")).withExposedPorts(9411);

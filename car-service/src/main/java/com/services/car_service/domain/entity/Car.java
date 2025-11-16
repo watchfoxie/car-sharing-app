@@ -6,6 +6,8 @@ import com.services.car_service.domain.enums.VehicleCategory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -116,6 +118,7 @@ public class Car implements Serializable {
      * Transmission type (MANUAL or AUTOMATIC).
      */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "transmission_type", columnDefinition = "transmission_type")
     private TransmissionType transmissionType;
 
@@ -123,6 +126,7 @@ public class Car implements Serializable {
      * Fuel type (GASOLINE, DIESEL, ELECTRIC, HYBRID, PLUG_IN_HYBRID).
      */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "fuel_type", columnDefinition = "fuel_type")
     private FuelType fuelType;
 
@@ -131,6 +135,7 @@ public class Car implements Serializable {
      */
     @NotNull(message = "Category is required")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, columnDefinition = "vehicle_category")
     private VehicleCategory category;
 

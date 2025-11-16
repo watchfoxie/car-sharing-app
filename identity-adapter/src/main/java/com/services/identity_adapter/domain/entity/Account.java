@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -12,6 +13,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.OffsetDateTime;
+
+import com.services.identity_adapter.persistence.type.CitextJdbcType;
 
 /**
  * Account entity representing user profiles in the Car Sharing platform.
@@ -68,6 +71,7 @@ public class Account {
      * 
      * <p>Used for login and display. Synchronized with OIDC provider.
      */
+    @JdbcType(CitextJdbcType.class)
     @Column(name = "username", nullable = false, unique = true, columnDefinition = "citext")
     @NotBlank(message = "Username is required")
     @Size(max = 255, message = "Username must not exceed 255 characters")
@@ -78,6 +82,7 @@ public class Account {
      * 
      * <p>Optional but unique when provided. PostgreSQL UNIQUE constraint allows multiple NULLs.
      */
+    @JdbcType(CitextJdbcType.class)
     @Column(name = "email", columnDefinition = "citext")
     @Email(message = "Email must be valid")
     @Size(max = 255, message = "Email must not exceed 255 characters")
