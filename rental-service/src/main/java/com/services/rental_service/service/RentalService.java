@@ -13,6 +13,7 @@ import com.services.rental_service.mapper.RentalMapper;
 import com.services.rental_service.sse.RentalStatusSseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Service layer for rental business logic.
@@ -55,6 +59,7 @@ public class RentalService {
     private final RentalRepository rentalRepository;
     private final RentalMapper rentalMapper;
     private final RentalStatusSseService sseService;
+    private final ConcurrentHashMap<String, ReentrantLock> idempotencyLocks = new ConcurrentHashMap<>();
     // TODO: Inject PricingServiceClient in future phase (Faza 12)
 
     /**
@@ -143,6 +148,20 @@ public class RentalService {
     @RetryOnConstraintViolation(maxAttempts = 3, initialBackoffMs = 100, backoffMultiplier = 2.0)
     @org.springframework.cache.annotation.CacheEvict(cacheNames = "activeRentals", allEntries = true)
     public RentalResponse createRental(CreateRentalRequest request, String renterId) {
+        ReentrantLock lock = null;
+        if (request.getIdempotencyKey() != null) {
+            lock = acquireIdempotencyLock(renterId, request.getIdempotencyKey());
+        }
+        try {
+            return doCreateRental(request, renterId);
+        } finally {
+            if (lock != null) {
+                releaseIdempotencyLock(renterId, request.getIdempotencyKey(), lock);
+            }
+        }
+    }
+
+    private RentalResponse doCreateRental(CreateRentalRequest request, String renterId) {
         log.info("Creating rental for renter: {}, car: {}, period: {} to {}",
                 renterId, request.getCarsId(), request.getPickupDatetime(), request.getReturnDatetime());
 
@@ -167,6 +186,22 @@ public class RentalService {
                 request.getReturnDatetime()
         );
         if (overlappingCount > 0) {
+            if (request.getIdempotencyKey() != null) {
+                Optional<Rental> existingAfterOverlap = rentalRepository.findByRenterIdAndIdempotencyKey(
+                        renterId, request.getIdempotencyKey());
+                if (existingAfterOverlap.isPresent()) {
+                    log.warn("Detected overlapping rental but found existing record for renter {} and key {}. Returning existing rental.",
+                            renterId, request.getIdempotencyKey());
+                    return rentalMapper.toResponse(existingAfterOverlap.get());
+                }
+
+                Optional<Rental> awaited = waitForIdempotentRental(renterId, request.getIdempotencyKey());
+                if (awaited.isPresent()) {
+                    log.warn("Detected overlap before transaction committed. Returning rental {} after short wait (renter={}, key={}).",
+                            awaited.get().getId(), renterId, request.getIdempotencyKey());
+                    return rentalMapper.toResponse(awaited.get());
+                }
+            }
             throw new BusinessException(String.format(
                     "Car %d is not available for the requested period (%s to %s). %d overlapping rental(s) found.",
                     request.getCarsId(), request.getPickupDatetime(), request.getReturnDatetime(), overlappingCount
@@ -182,7 +217,20 @@ public class RentalService {
         rental.setStatus(RentalStatus.CONFIRMED);
         rental.setEstimatedCost(estimatedCost);
 
-        Rental savedRental = rentalRepository.save(rental);
+        Rental savedRental;
+        try {
+            savedRental = rentalRepository.save(rental);
+        } catch (DataIntegrityViolationException ex) {
+            if (request.getIdempotencyKey() != null && isIdempotencyConstraint(ex)) {
+            log.warn("Idempotent rental request hit unique constraint. Returning existing rental for renter {} and key {}",
+                renterId, request.getIdempotencyKey());
+            Rental existing = waitForIdempotentRental(renterId, request.getIdempotencyKey())
+                .orElseGet(() -> rentalRepository.findByRenterIdAndIdempotencyKey(renterId, request.getIdempotencyKey())
+                    .orElseThrow(() -> ex));
+            return rentalMapper.toResponse(existing);
+            }
+            throw ex;
+        }
         log.info("Rental created successfully with ID: {}", savedRental.getId());
 
         // Broadcast SSE event
@@ -193,6 +241,28 @@ public class RentalService {
         sseService.broadcastStatusUpdate("rental-confirmed", eventData);
 
         return rentalMapper.toResponse(savedRental);
+    }
+
+    private ReentrantLock acquireIdempotencyLock(String renterId, String idempotencyKey) {
+        String key = buildLockKey(renterId, idempotencyKey);
+        ReentrantLock lock = idempotencyLocks.computeIfAbsent(key, k -> new ReentrantLock());
+        lock.lock();
+        return lock;
+    }
+
+    private void releaseIdempotencyLock(String renterId, String idempotencyKey, ReentrantLock lock) {
+        try {
+            lock.unlock();
+        } finally {
+            String key = buildLockKey(renterId, idempotencyKey);
+            if (!lock.hasQueuedThreads()) {
+                idempotencyLocks.remove(key, lock);
+            }
+        }
+    }
+
+    private String buildLockKey(String renterId, String idempotencyKey) {
+        return renterId + ':' + idempotencyKey;
     }
 
     /**
@@ -458,5 +528,30 @@ public class RentalService {
                 : BigDecimal.ZERO;
 
         return baseCost.add(additionalCharges);
+    }
+
+    private boolean isIdempotencyConstraint(DataIntegrityViolationException ex) {
+        String message = ex.getMessage();
+        return message != null && message.contains("uq_rental_idem");
+    }
+
+    private Optional<Rental> waitForIdempotentRental(String renterId, String idempotencyKey) {
+        final int maxAttempts = 5;
+        long delayMs = 25;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            Optional<Rental> existing = rentalRepository.findByRenterIdAndIdempotencyKey(renterId, idempotencyKey);
+            if (existing.isPresent()) {
+                return existing;
+            }
+            try {
+                TimeUnit.MILLISECONDS.sleep(delayMs);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return Optional.empty();
+            }
+            delayMs = Math.min(delayMs * 2, 400);
+        }
+        log.warn("Idempotent rental for renter {} and key {} not visible after waiting. Continuing without cached result.", renterId, idempotencyKey);
+        return Optional.empty();
     }
 }

@@ -40,7 +40,7 @@ import java.util.Random;
  * @since 2025-01-09
  */
 @Aspect
-@Component
+@Component("rentalRetryAspect")
 @Slf4j
 public class RetryAspect {
 

@@ -8,7 +8,7 @@ import com.services.common.outbox.EventSerializationException;
 import com.services.common.outbox.OutboxPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +27,8 @@ import java.util.Map;
 public class RentalOutboxPublisherImpl implements OutboxPublisher<RentalOutboxEvent> {
 
     private final RentalOutboxEventRepository outboxRepository;
+    private final ObjectProvider<RentalOutboxPublisherImpl> selfProvider;
     private final ObjectMapper objectMapper = KafkaSerializationUtil.createKafkaObjectMapper();
-    
-    // Self-injection to enable proper transactional proxy behavior
-    @Autowired
-    private RentalOutboxPublisherImpl self;
 
     @Override
     @Transactional
@@ -74,8 +71,9 @@ public class RentalOutboxPublisherImpl implements OutboxPublisher<RentalOutboxEv
                     event.getCorrelationId() != null ? event.getCorrelationId() : "N/A");
             headers.put(KafkaTopics.HEADER_EVENT_TIMESTAMP, event.getOccurredAt().toString());
 
-            // Use self-injection to ensure transactional proxy is invoked
-            return self.publish(event.getAggregateType(), event.getAggregateId(), payload, headers);
+            // Use provider to ensure transactional proxy is invoked
+            return selfProvider.getObject()
+                    .publish(event.getAggregateType(), event.getAggregateId(), payload, headers);
 
         } catch (Exception e) {
             log.error("Failed to serialize domain event: {}", e.getMessage(), e);

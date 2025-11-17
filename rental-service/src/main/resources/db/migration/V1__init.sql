@@ -265,9 +265,17 @@ COMMENT ON CONSTRAINT ex_cars_rental_no_overlap ON rental.cars_rental_history IS
 Prevents overlapping active rentals (CONFIRMED, PICKED_UP) on same car using GiST && operator on rental_period
 $$;
 
-COMMENT ON INDEX uq_rental_idem IS $$
-Ensures idempotent rental creation: (renter_id, idempotency_key) uniqueness
-$$;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_indexes
+    WHERE schemaname = 'rental'
+      AND indexname = 'uq_rental_idem'
+  ) THEN
+    EXECUTE 'COMMENT ON INDEX rental.uq_rental_idem IS ''Ensures idempotent rental creation: (renter_id, idempotency_key) uniqueness''';
+  END IF;
+END $$;
 
 -- =====================================================
 -- End of V1__init.sql
