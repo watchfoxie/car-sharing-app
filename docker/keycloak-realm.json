@@ -57,13 +57,13 @@
     {
       "username": "admin",
       "enabled": true,
-      "email": "admin@carsharing.local",
+      "email": "csadmin@gmail.com",
       "firstName": "Admin",
       "lastName": "User",
       "credentials": [
         {
           "type": "password",
-          "value": "admin123",
+          "value": "csadmin123",
           "temporary": false
         }
       ],
@@ -72,13 +72,13 @@
     {
       "username": "manager",
       "enabled": true,
-      "email": "manager@carsharing.local",
+      "email": "manager@gmail.com",
       "firstName": "Fleet",
       "lastName": "Manager",
       "credentials": [
         {
           "type": "password",
-          "value": "manager123",
+          "value": "csmanager123",
           "temporary": false
         }
       ],
@@ -87,13 +87,13 @@
     {
       "username": "user",
       "enabled": true,
-      "email": "user@carsharing.local",
+      "email": "user@gmail.com",
       "firstName": "Regular",
       "lastName": "User",
       "credentials": [
         {
           "type": "password",
-          "value": "user123",
+          "value": "csuser123",
           "temporary": false
         }
       ],
