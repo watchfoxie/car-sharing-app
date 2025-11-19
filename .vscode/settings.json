@@ -1,0 +1,33 @@
+{
+    "java.compile.nullAnalysis.mode": "disabled",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-21",
+    "maven.executable.path": "C:\\Program Files\\Apache\\apache-maven-3.9.11\\bin\\mvn.cmd",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "C:\\Program Files\\Java\\jdk-21",
+            "default": true
+        }
+    ],
+    "maven.terminal.customEnv": [
+        {
+            "environmentVariable": "JAVA_HOME",
+            "value": "C:\\Program Files\\Java\\jdk-21"
+        },
+        {
+            "environmentVariable": "MAVEN_HOME",
+            "value": "C:\\Program Files\\Apache\\apache-maven-3.9.11"
+        }
+    ],
+    "yaml.customTags": [
+        "!Ref",
+        "!GetAtt",
+        "!Sub"
+    ],
+    "yaml.validate": true,
+    "yaml.format.enable": true,
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    }
+}
