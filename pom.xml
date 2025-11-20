@@ -17,9 +17,7 @@
         <module>config-server</module>
         <module>api-gateway</module>
         <module>authen-service</module>
-        <module>notification-service</module>
         <module>user-service</module>
-        <module>ride-service</module>
         <module>user-command</module>
     </modules>
 
