@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://i.imgur.com/daT5tNt.png" width="200" alt="Car Sharing logo" />
+  <img src="assets/cs-large-logo.png" width="200" alt="Car Sharing logo" />
   <h2>Car Sharing - Aplicație web full-stack</h2>
   <a href="https://spring.io/"><img src="https://i.imgur.com/UUkd9aO.png" alt="Java Spring" /></a>
   <a href="https://start.spring.io/"><img src="https://i.imgur.com/hRuoLp3.png" alt="Spring Initializr" /></a>

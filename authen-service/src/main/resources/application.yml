@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: AUTH
+  r2dbc:
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://localhost:5432/auth_service}
+    username: ${SPRING_R2DBC_USERNAME:csadmin}
+    password: ${SPRING_R2DBC_PASSWORD:csadmin123}
+  flyway:
+    enabled: true
+    url: ${SPRING_FLYWAY_URL:jdbc:postgresql://localhost:5432/auth_service}
+    user: ${SPRING_FLYWAY_USER:csadmin}
+    password: ${SPRING_FLYWAY_PASSWORD:csadmin123}
+    baseline-on-migrate: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+server:
+  port: 8081
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    disable-swagger-default-url: true
+
+token:
+  signing:
+    key: ${TOKEN_SIGNING_KEY:U3VwZXJTZWNyZXRLZXlGb3JKd3RTaWduVGVzdHMxMjM=}
