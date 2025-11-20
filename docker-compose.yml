@@ -6,14 +6,13 @@ services:
       POSTGRES_USER: csadmin
       POSTGRES_PASSWORD: csadmin123
       POSTGRES_DB: driver
+      POSTGRES_INITDB_ARGS: "--username=csadmin --auth-host=scram-sha-256 --auth-local=scram-sha-256"
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
       LC_CTYPE: C.UTF-8
       LC_COLLATE: C.UTF-8
     command: >
-      postgres
-      -c shared_preload_libraries=pg_stat_statements
-      -c pg_stat_statements.track=all
+      sh -c "apk add --no-cache musl-locales && exec /usr/local/bin/docker-entrypoint.sh postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all"
     ports:
       - "5432:5432"
     volumes:
@@ -99,76 +98,76 @@ services:
     networks:
       - spring
 
-  driver-service:
-    image: driver-service
-    container_name: driver-service-cs
-    build:
-      context: .
-      dockerfile: ./driver-service/Dockerfile
-    ports:
-      - "8081:8081"
-    environment:
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka-server:8761/eureka"}}}}'
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/driver
-      SPRING_DATASOURCE_USERNAME: csadmin
-      SPRING_DATASOURCE_PASSWORD: csadmin123
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 768M
-    restart: unless-stopped
-    networks:
-      - postgres
-      - spring
+  # driver-service:
+  #   image: driver-service
+  #   container_name: driver-service-cs
+  #   build:
+  #     context: .
+  #     dockerfile: ./driver-service/Dockerfile
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka-server:8761/eureka"}}}}'
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/driver
+  #     SPRING_DATASOURCE_USERNAME: csadmin
+  #     SPRING_DATASOURCE_PASSWORD: csadmin123
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     eureka-server:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+  #     interval: 15s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '1.0'
+  #         memory: 768M
+  #   restart: unless-stopped
+  #   networks:
+  #     - postgres
+  #     - spring
 
-  customer-service:
-    image: customer-service
-    container_name: customer-service-cs
-    build:
-      context: .
-      dockerfile: ./customer-service/Dockerfile
-    ports:
-      - "9091:9091"
-    environment:
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka-server:8761/eureka"}}}}'
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer
-      SPRING_DATASOURCE_USERNAME: csadmin
-      SPRING_DATASOURCE_PASSWORD: csadmin123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-      driver-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9091/actuator/health"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 768M
-    restart: unless-stopped
-    networks:
-      - postgres
-      - spring
+  # customer-service:
+  #   image: customer-service
+  #   container_name: customer-service-cs
+  #   build:
+  #     context: .
+  #     dockerfile: ./customer-service/Dockerfile
+  #   ports:
+  #     - "9091:9091"
+  #   environment:
+  #     SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka-server:8761/eureka"}}}}'
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer
+  #     SPRING_DATASOURCE_USERNAME: csadmin
+  #     SPRING_DATASOURCE_PASSWORD: csadmin123
+  #     SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     eureka-server:
+  #       condition: service_healthy
+  #     driver-service:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9091/actuator/health"]
+  #     interval: 15s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '1.0'
+  #         memory: 768M
+  #   restart: unless-stopped
+  #   networks:
+  #     - postgres
+  #     - spring
 
   # authen-service:
   #   image: authen-service

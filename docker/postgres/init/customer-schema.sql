@@ -1,8 +1,10 @@
 \connect customer;
 
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 -- Base table for customer-service domain users
 CREATE TABLE IF NOT EXISTS customer (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     version INTEGER,
     created_at TIMESTAMP,
     created_by VARCHAR(100),
@@ -19,10 +21,12 @@ CREATE TABLE IF NOT EXISTS customer (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS customer_email_uq ON customer(email);
+CREATE INDEX IF NOT EXISTS customer_active_idx ON customer(active) WHERE deleted IS FALSE;
+CREATE INDEX IF NOT EXISTS customer_deleted_idx ON customer(deleted);
 
 -- Notifications awaiting acknowledgement by the owning customer
 CREATE TABLE IF NOT EXISTS notification_customer (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     version INTEGER,
     created_at TIMESTAMP,
     created_by VARCHAR(100),
@@ -35,3 +39,4 @@ CREATE TABLE IF NOT EXISTS notification_customer (
 );
 
 CREATE INDEX IF NOT EXISTS notification_customer_customer_id_idx ON notification_customer(customer_id);
+CREATE INDEX IF NOT EXISTS notification_customer_driver_id_idx ON notification_customer(driver_id);
