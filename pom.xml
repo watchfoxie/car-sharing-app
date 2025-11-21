@@ -20,6 +20,7 @@
         <module>user-service</module>
         <module>user-command</module>
         <module>driver-location-service</module>
+        <module>payment-service</module>
     </modules>
 
     <properties>
