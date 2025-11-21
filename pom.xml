@@ -21,6 +21,7 @@
         <module>user-command</module>
         <module>driver-location-service</module>
         <module>payment-service</module>
+        <module>wallet-service</module>
     </modules>
 
     <properties>
