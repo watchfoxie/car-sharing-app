@@ -19,6 +19,7 @@
         <module>authen-service</module>
         <module>user-service</module>
         <module>user-command</module>
+        <module>driver-location-service</module>
     </modules>
 
     <properties>
