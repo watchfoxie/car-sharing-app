@@ -57,7 +57,7 @@ public class CustomerServiceImpl implements CustomerService{
         if(findById(ratingCommand.getDriverId()) == null)
             throw new BusinessException(ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND.get());
         restTemplate.postForEntity(
-                "http://localhost:8000/rating-service/v1/ratings", ratingCommand,
+                "http://localhost:8086/rating-service/v1/ratings", ratingCommand,
                 RatingCommand.class
         );
         return "[+] Message Sent successfully !!";
@@ -96,19 +96,19 @@ public class CustomerServiceImpl implements CustomerService{
     public CustomerDetails findCustomerDetailsById(String customerId) {
         final Customer customer = findById(customerId);
         final ResponseEntity<DriverLocationDto> driverLocationDtoResponseEntity = getEntity(
-                "http://DRIVER-LOCATION:8082/v1/driver-location/driver-location-details/"
+                "http://DRIVER-LOCATION:8083/v1/driver-location/driver-location-details/"
                 + customer.getId(),
                 DriverLocationDto.class
         );
         var driverResponse = driverLocationDtoResponseEntity.getBody();
         final ResponseEntity<BankAccount> bankAccountResponseEntity = getEntity(
-                "http://PAYMENT:2345/v1/payment/account-details/"
+                "http://PAYMENT:8084/v1/payment/account-details/"
                     + customer.getId(),
                 BankAccount.class
         );
         var bankAccountResponse = bankAccountResponseEntity.getBody();
         final ResponseEntity<WalletDetails> walletDetailsResponseEntity = getEntity(
-                "http://WALLET:2000/v1/wallet/payment/" +
+                "http://WALLET:8085/v1/wallet/payment/" +
                         bankAccountResponse.getId(),
                 WalletDetails.class
         );

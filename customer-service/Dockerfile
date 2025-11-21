@@ -14,6 +14,6 @@ VOLUME /tmp
 
 COPY --from=build /workspace/customer-service/target/customer-service-1.0-SNAPSHOT.jar ./customer-service-1.0-SNAPSHOT.jar
 
-EXPOSE 9091
+EXPOSE 8088
 
 ENTRYPOINT ["java", "-jar", "customer-service-1.0-SNAPSHOT.jar"]

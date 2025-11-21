@@ -14,6 +14,6 @@ VOLUME /tmp
 
 COPY --from=build /workspace/driver-service/target/driver-service-1.0-SNAPSHOT.jar ./driver-service-1.0-SNAPSHOT.jar
 
-EXPOSE 8081
+EXPOSE 8087
 
 ENTRYPOINT ["java", "-jar", "driver-service-1.0-SNAPSHOT.jar"]

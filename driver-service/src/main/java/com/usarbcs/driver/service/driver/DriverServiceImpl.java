@@ -42,7 +42,7 @@ public class DriverServiceImpl implements DriverService{
         final Driver driver = Driver.create(driverCommand);
         log.info("Driver with id {} created successfully", driver.getId());
         driverRepository.save(driver);
-        final String uri = "http://DRIVER-LOCATION:8082/v1/driver-location/" + driver.getId();
+        final String uri = "http://DRIVER-LOCATION:8083/v1/driver-location/" + driver.getId();
         log.info("[+] URI => {}", uri);
         restTemplate.getForObject(
                 uri,
@@ -58,19 +58,19 @@ public class DriverServiceImpl implements DriverService{
         final Driver driver = findById(driverId);
 
         final ResponseEntity<DriverLocationDto> driverLocationDtoResponseEntity = getEntity(
-                "http://DRIVER-LOCATION:8082/v1/driver-location/driver-location-details/"
+                "http://DRIVER-LOCATION:8083/v1/driver-location/driver-location-details/"
                         + driverId,
                 DriverLocationDto.class
         );
         var driverResponse = driverLocationDtoResponseEntity.getBody();
         final ResponseEntity<BankAccount> bankAccountResponseEntity = getEntity(
-                "http://PAYMENT:2345/v1/payment/account-details/"
+                "http://PAYMENT:8084/v1/payment/account-details/"
                         + driverId,
                 BankAccount.class
         );
         var bankAccountResponse = bankAccountResponseEntity.getBody();
         final ResponseEntity<WalletDetails> walletDetailsResponseEntity = getEntity(
-                "http://WALLET:2000/v1/wallet/payment/" +
+                "http://WALLET:8085/v1/wallet/payment/" +
                         bankAccountResponse.getId(),
                 WalletDetails.class
         );
@@ -88,7 +88,7 @@ public class DriverServiceImpl implements DriverService{
         log.info("[+] Begin removing account with id {}", driverId);
         final Driver driver = findById(driverId);
         driverRepository.delete(driver);
-        restTemplate.delete("http://DRIVER-LOCATION:8082/v1/driver-location/" + driverId, driverId);
+        restTemplate.delete("http://DRIVER-LOCATION:8083/v1/driver-location/" + driverId, driverId);
     }
     @Override
     public Page<Driver> findAllByCriteria(Pageable pageable, DriverCriteria driverCriteria) {
@@ -101,7 +101,7 @@ public class DriverServiceImpl implements DriverService{
         final String customerId = driver.getLastNotification();
         if(ratingCommand.getCustomerId().equals(customerId)) {
             restTemplate.postForEntity(
-                    "http://RATING:2018/v1/ratings/",
+                    "http://localhost:8086/rating-service/v1/ratings",
                     ratingCommand,
                     RatingCommand.class
             );
