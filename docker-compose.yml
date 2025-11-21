@@ -271,6 +271,43 @@ services:
       - postgres
       - spring
 
+  rating-service:
+    image: rating-service
+    container_name: rating-service-cs
+    build:
+      context: .
+      dockerfile: ./rating-service/Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      SERVER_SERVLET_CONTEXT_PATH: /rating-service
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka-server:8761/eureka"}}}}'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rating
+      SPRING_DATASOURCE_USERNAME: csadmin
+      SPRING_DATASOURCE_PASSWORD: csadmin123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8086/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+    restart: unless-stopped
+    networks:
+      - postgres
+      - spring
+
   driver-service:
     image: driver-service
     container_name: driver-service-cs

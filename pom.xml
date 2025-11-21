@@ -22,6 +22,7 @@
         <module>driver-location-service</module>
         <module>payment-service</module>
         <module>wallet-service</module>
+        <module>rating-service</module>
     </modules>
 
     <properties>

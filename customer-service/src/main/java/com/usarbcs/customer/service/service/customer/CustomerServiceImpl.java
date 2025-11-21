@@ -36,6 +36,8 @@ import java.util.UUID;
 @Slf4j
 public class CustomerServiceImpl implements CustomerService{
 
+    private static final String RATING_SERVICE_URI = "http://rating-service/rating-service/v1/ratings";
+
     private final CustomerRepository customerRepository;
     private final RestTemplate restTemplate;
     private final CustomerMapper customerMapper;
@@ -57,8 +59,9 @@ public class CustomerServiceImpl implements CustomerService{
         if(findById(ratingCommand.getDriverId()) == null)
             throw new BusinessException(ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND.get());
         restTemplate.postForEntity(
-                "http://localhost:8086/rating-service/v1/ratings", ratingCommand,
-                RatingCommand.class
+            RATING_SERVICE_URI,
+            ratingCommand,
+            RatingCommand.class
         );
         return "[+] Message Sent successfully !!";
     }

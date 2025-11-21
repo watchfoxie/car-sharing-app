@@ -30,6 +30,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService{
 
+    private static final String RATING_SERVICE_URI = "http://rating-service/rating-service/v1/ratings";
 
     private final DriverRepository driverRepository;
     private final RestTemplate restTemplate;
@@ -100,11 +101,11 @@ public class DriverServiceImpl implements DriverService{
         final Driver driver = findById(ratingCommand.getDriverId());
         final String customerId = driver.getLastNotification();
         if(ratingCommand.getCustomerId().equals(customerId)) {
-            restTemplate.postForEntity(
-                    "http://localhost:8086/rating-service/v1/ratings",
+                restTemplate.postForEntity(
+                    RATING_SERVICE_URI,
                     ratingCommand,
                     RatingCommand.class
-            );
+                );
             return "Message Sent";
         }
         else{
