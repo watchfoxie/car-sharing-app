@@ -36,7 +36,11 @@ import java.util.UUID;
 @Slf4j
 public class CustomerServiceImpl implements CustomerService{
 
-    private static final String RATING_SERVICE_URI = "http://rating-service/rating-service/v1/ratings";
+    private static final String RATING_SERVICE_URI = "http://rating-service:8086/rating-service/v1/ratings";
+    private static final String DRIVER_SERVICE_AVAILABLE_URI = "http://driver-service:8087/v1/drivers/available";
+    private static final String DRIVER_LOCATION_DETAILS_URI = "http://driver-location-service:8083/v1/driver-location/driver-location-details/%s";
+    private static final String PAYMENT_ACCOUNT_DETAILS_URI = "http://payment-service:8084/v1/payment/account-details/%s";
+    private static final String WALLET_DETAILS_BY_ACCOUNT_URI = "http://wallet-service:8085/v1/wallet/payment/%s";
 
     private final CustomerRepository customerRepository;
     private final RestTemplate restTemplate;
@@ -78,7 +82,7 @@ public class CustomerServiceImpl implements CustomerService{
     @Override
     public Set<Driver> getDriversAvailable() {
         final ResponseEntity<Set<Driver>> objects = restTemplate.exchange(
-                "https://carsharing-microservice-driver-service.azuremicroservices.io/v1/drivers", HttpMethod.GET,
+                DRIVER_SERVICE_AVAILABLE_URI, HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<>() {
                 });
@@ -99,23 +103,29 @@ public class CustomerServiceImpl implements CustomerService{
     public CustomerDetails findCustomerDetailsById(String customerId) {
         final Customer customer = findById(customerId);
         final ResponseEntity<DriverLocationDto> driverLocationDtoResponseEntity = getEntity(
-                "http://DRIVER-LOCATION:8083/v1/driver-location/driver-location-details/"
-                + customer.getId(),
+            String.format(DRIVER_LOCATION_DETAILS_URI, customer.getId()),
                 DriverLocationDto.class
         );
         var driverResponse = driverLocationDtoResponseEntity.getBody();
+        if (driverResponse == null) {
+            throw new BusinessException(ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND.get());
+        }
         final ResponseEntity<BankAccount> bankAccountResponseEntity = getEntity(
-                "http://PAYMENT:8084/v1/payment/account-details/"
-                    + customer.getId(),
+            String.format(PAYMENT_ACCOUNT_DETAILS_URI, customer.getId()),
                 BankAccount.class
         );
         var bankAccountResponse = bankAccountResponseEntity.getBody();
+        if (bankAccountResponse == null) {
+            throw new BusinessException(ExceptionPayloadFactory.BANK_ACCOUNT_NOT_FOUND.get());
+        }
         final ResponseEntity<WalletDetails> walletDetailsResponseEntity = getEntity(
-                "http://WALLET:8085/v1/wallet/payment/" +
-                        bankAccountResponse.getId(),
+            String.format(WALLET_DETAILS_BY_ACCOUNT_URI, bankAccountResponse.getId()),
                 WalletDetails.class
         );
         var walletDetailsResponse = walletDetailsResponseEntity.getBody();
+        if (walletDetailsResponse == null) {
+            throw new BusinessException(ExceptionPayloadFactory.WALLET_NOT_FOUND.get());
+        }
         return new CustomerDetails(
                 customerMapper.toDto(customer),
                 driverResponse,
