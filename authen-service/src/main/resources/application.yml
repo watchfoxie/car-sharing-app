@@ -42,7 +42,7 @@ token:
 
 security:
   admin:
-    username: ${AUTH_ADMIN_USERNAME:cs-admin}
+    username: ${AUTH_ADMIN_USERNAME:csadmin}
     password: ${AUTH_ADMIN_PASSWORD:csadmin123}
     roles:
       - ADMIN

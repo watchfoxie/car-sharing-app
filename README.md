@@ -14,3 +14,5 @@
 Aplicația _**Car Sharing**_ este destinată - operării serviciilor de închiriere pe termen determinat al autovehiculelor (mașini).
 
 _Car-sharingul_ este un serviciu de mobilitate prin care operatorul pune la dispoziția clientului, contra cost și pentru o utilizare pe termen determinat, o flotă de autovehicule accesibilă pe bază de rezervare, cu acces la cheie fizică sau digitală, în sistem flotant (free‑floating), tarifat în funcție de timp, permițând să utilizeze vehiculul intermitent cu drept de uz fără a-l deține în proprietate.
+
+Generare token cheie de autentificare în format șir base64 de 32 octeți pentru HS256: `python -c "import base64;print(base64.b64encode(b'string').decode())"`
