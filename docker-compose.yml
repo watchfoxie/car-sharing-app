@@ -97,7 +97,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - spring
@@ -127,7 +127,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - spring
@@ -168,7 +168,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -212,7 +212,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -256,7 +256,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -302,7 +302,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -350,7 +350,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -401,7 +401,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -452,7 +452,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -506,7 +506,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - postgres
@@ -558,7 +558,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 768M
+          memory: 512M
     restart: unless-stopped
     networks:
       - spring
