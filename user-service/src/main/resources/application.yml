@@ -32,7 +32,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     display-request-duration: true
-    disable-swagger-default-url: true
+    disable-swagger-default-url: false
 
 jwt:
   secret: njkznjknccxw
