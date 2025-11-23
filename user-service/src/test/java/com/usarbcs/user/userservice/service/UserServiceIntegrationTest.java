@@ -8,10 +8,13 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -21,6 +24,7 @@ import java.time.Duration;
 
 @Testcontainers
 @SpringBootTest
+@AutoConfigureWebTestClient
 class UserServiceIntegrationTest {
 
     @Container
@@ -46,6 +50,9 @@ class UserServiceIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WebTestClient webTestClient;
 
     @BeforeEach
     void cleanDatabase() {
@@ -95,6 +102,15 @@ class UserServiceIntegrationTest {
                         .isInstanceOf(RuntimeException.class)
                         .hasMessage("Invalid credentials"))
                 .verify();
+    }
+
+    @Test
+    void shouldExposeOpenApiDocsWithoutAuthentication() {
+        webTestClient.get()
+                .uri("/v3/api-docs")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON);
     }
 
     private static UserRegisterCommand buildRegisterCommand(String email, String password) {
