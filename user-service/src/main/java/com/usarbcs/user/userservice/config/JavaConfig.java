@@ -25,13 +25,16 @@ public class JavaConfig {
 
     private static final String DEFAULT_ADMIN_USERNAME = "csadmin";
     private static final String DEFAULT_ADMIN_PASSWORD = "csadmin123";
-    private static final String[] PUBLIC_ENDPOINTS = {
+        private static final String[] PUBLIC_ENDPOINTS = {
             "/v1/auth/**",
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs",
             "/v3/api-docs/**",
-            "/webjars/**"
+            "/webjars/**",
+            "/actuator/health",
+            "/actuator/health/**",
+            "/actuator/info"
     };
 
     @Bean
