@@ -11,6 +11,9 @@ spring:
     baseline-on-migrate: true
   application:
     name: user-service
+  cloud:
+    loadbalancer:
+      enabled: false # disable unused LoadBalancer auto-config to stop BeanPostProcessor warnings
   profiles:
     active: dev
 
@@ -32,3 +35,8 @@ springdoc:
 jwt:
   secret: njkznjknccxw
   expiration: 3600000
+
+security:
+  admin:
+    username: ${USER_SERVICE_ADMIN_USERNAME:csadmin}
+    password: ${USER_SERVICE_ADMIN_PASSWORD:csadmin123}

@@ -16,6 +16,19 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableConfigurationProperties(AdminUserProperties.class)
 public class SecurityConfig {
 
+    private static final String DEFAULT_ADMIN_USERNAME = "csadmin";
+    private static final String DEFAULT_ADMIN_PASSWORD = "csadmin123";
+    private static final String[] ENDPOINTS = {
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/actuator",
+            "/actuator/health",
+            "/actuator/health/**",
+            "/v1/auth/**"
+    };
+
     @Bean
     public SecurityWebFilterChain authSecurityFilterChain(ServerHttpSecurity http) {
         return http
@@ -23,15 +36,7 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/actuator",
-                                "/actuator/health",
-                                "/actuator/health/**",
-                                "/v1/auth/**")
+                        .pathMatchers(ENDPOINTS)
                         .permitAll()
                         .anyExchange()
                         .authenticated())
@@ -41,8 +46,8 @@ public class SecurityConfig {
             @Bean
             public MapReactiveUserDetailsService userDetailsService(AdminUserProperties adminUserProperties,
                                                                    PasswordEncoder passwordEncoder) {
-                String username = adminUserProperties.username() == null ? "csadmin" : adminUserProperties.username();
-                String rawPassword = adminUserProperties.password() == null ? "csadmin123" : adminUserProperties.password();
+                String username = adminUserProperties.username() == null ? DEFAULT_ADMIN_USERNAME : adminUserProperties.username();
+                String rawPassword = adminUserProperties.password() == null ? DEFAULT_ADMIN_PASSWORD : adminUserProperties.password();
                 String[] roles = adminUserProperties.roles() == null
                         ? new String[] {"ADMIN"}
                         : adminUserProperties.roles().toArray(String[]::new);
