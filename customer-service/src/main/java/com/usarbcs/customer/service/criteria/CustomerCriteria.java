@@ -1,15 +1,6 @@
 package com.usarbcs.customer.service.criteria;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 
-import lombok.extern.jackson.Jacksonized;
-
-
-
-@Jacksonized
-public record CustomerCriteria(String firstName) {
-
-    @Override
-    public String firstName() {
-        return firstName;
-    }
+public record CustomerCriteria(@Schema(description = "Filter customers whose first name matches the provided value", example = "Ana") String firstName) {
 }

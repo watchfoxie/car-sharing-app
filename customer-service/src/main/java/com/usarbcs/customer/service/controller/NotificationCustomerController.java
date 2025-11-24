@@ -6,6 +6,7 @@ import com.usarbcs.customer.service.mapper.NotificationCustomerMapper;
 import com.usarbcs.customer.service.model.NotificationCustomer;
 import com.usarbcs.customer.service.service.notification.NotificationCustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,8 @@ public class NotificationCustomerController {
 
 
     @GetMapping("/{customerId}")
-    public ResponseEntity<Page<NotificationCustomerDto>> getAll(@PathVariable("customerId") final String customerId, Pageable pageable){
+    public ResponseEntity<Page<NotificationCustomerDto>> getAll(@PathVariable("customerId") final String customerId,
+                                                               @ParameterObject final Pageable pageable){
         final Page<NotificationCustomer> notificationCustomers = notificationCustomerService.getNotificationsCustomerById(customerId, pageable);
         return ResponseEntity.ok(notificationCustomers.map(notificationCustomerMapper::toDto));
     }
