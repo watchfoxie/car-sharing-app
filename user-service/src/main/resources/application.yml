@@ -35,7 +35,7 @@ springdoc:
     disable-swagger-default-url: false
 
 jwt:
-  secret: njkznjknccxw
+  secret: VwZXJTZWNyZXRLZXlGb3JKd3RTaWduVGVzdHMxMjM=
   expiration: 3600000
 
 security:

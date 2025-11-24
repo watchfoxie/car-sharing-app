@@ -10,11 +10,13 @@ spring:
             - Path=/api/users/**
           filters:
             - StripPrefix=1
+    loadbalancer:
+      enabled: false # disable unused LoadBalancer auto-config to stop BeanPostProcessor warnings
   application:
     name: api-gateway
   security:
     jwt:
-      secret: yourSecretKey
+      secret: VwZXJTZWNyZXRLZXlGb3JKd3RTaWduVGVzdHMxMjM=
       expiration: 3600000 # 1 hour
 
 eureka:
