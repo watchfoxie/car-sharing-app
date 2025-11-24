@@ -8,12 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @Repository
-public interface NotificationDriverRepository extends JpaRepository<NotificationDriver, String> {
+public interface NotificationDriverRepository extends JpaRepository<NotificationDriver, UUID> {
 
-    List<NotificationDriver> findAllByDriverId(String driverId);
+    List<NotificationDriver> findAllByDriverId(UUID driverId);
     Page<NotificationDriver> findAllByDriver(Pageable pageable, Driver driver);
     NotificationDriver findByCustomerIdAndDriver(String customerId, Driver driver);
 }

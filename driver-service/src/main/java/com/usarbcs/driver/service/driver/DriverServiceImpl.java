@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -141,14 +142,25 @@ public class DriverServiceImpl implements DriverService{
     @Override
     public Driver findById(String driverId){
         log.info("Begin fetching driver with id {}", driverId);
-        final Driver driver = driverRepository.findById(driverId).orElseThrow(
-                () -> new BusinessException(ExceptionPayloadFactory.DRIVER_NOT_FOUND.get()));
+        final Driver driver = driverRepository.findById(parseDriverId(driverId)).orElseThrow(
+            () -> new BusinessException(ExceptionPayloadFactory.DRIVER_NOT_FOUND.get()));
         log.info("Driver with id {} fetched successfully", driverId);
         return driver;
     }
     @Override
     public Page<Driver> getAll(Pageable pageable) {
         return driverRepository.findAllByDeletedFalse(pageable);
+    }
+
+    private UUID parseDriverId(String driverId) {
+        if (driverId == null) {
+            throw new BusinessException(ExceptionPayloadFactory.DRIVER_NOT_FOUND.get());
+        }
+        try {
+            return UUID.fromString(driverId);
+        } catch (IllegalArgumentException ex) {
+            throw new BusinessException(ExceptionPayloadFactory.DRIVER_NOT_FOUND.get());
+        }
     }
 }
 

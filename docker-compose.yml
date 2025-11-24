@@ -392,7 +392,7 @@ services:
       wallet-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8086/actuator/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8086/rating-service/actuator/health"]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -407,56 +407,56 @@ services:
       - postgres
       - spring
 
-  # driver-service:
-  #   image: driver-service
-  #   container_name: driver-service-cs
-  #   build:
-  #     context: .
-  #     dockerfile: ./driver-service/Dockerfile
-  #   environment:
-  #     SERVER_PORT: 8087
-  #     SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka-server:8761/eureka"}}}}'
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/driver
-  #     SPRING_DATASOURCE_USERNAME: csadmin
-  #     SPRING_DATASOURCE_PASSWORD: csadmin123
-  #   ports:
-  #     - "8087:8087"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     pgadmin:
-  #       condition: service_healthy
-  #     config-server:
-  #       condition: service_healthy
-  #     eureka-server:
-  #       condition: service_healthy
-  #     authen-service:
-  #       condition: service_healthy
-  #     user-service:
-  #       condition: service_healthy
-  #     driver-location-service:
-  #       condition: service_healthy
-  #     payment-service:
-  #       condition: service_healthy
-  #     wallet-service:
-  #       condition: service_healthy
-  #     rating-service:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8087/actuator/health"]
-  #     interval: 15s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 60s
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '1.0'
-  #         memory: 512M
-  #   restart: unless-stopped
-  #   networks:
-  #     - postgres
-  #     - spring
+  driver-service:
+    image: driver-service
+    container_name: driver-service-cs
+    build:
+      context: .
+      dockerfile: ./driver-service/Dockerfile
+    environment:
+      SERVER_PORT: 8087
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka-server:8761/eureka"}}}}'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/driver
+      SPRING_DATASOURCE_USERNAME: csadmin
+      SPRING_DATASOURCE_PASSWORD: csadmin123
+    ports:
+      - "8087:8087"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgadmin:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      authen-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      driver-location-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+      wallet-service:
+        condition: service_healthy
+      rating-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8087/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    restart: unless-stopped
+    networks:
+      - postgres
+      - spring
 
   # customer-service:
   #   image: customer-service

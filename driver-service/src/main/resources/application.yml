@@ -11,7 +11,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
   datasource:
     url: jdbc:postgresql://localhost:5432/driver
@@ -20,6 +20,9 @@ spring:
 
   application:
     name: driver
+  cloud:
+    loadbalancer:
+      enabled: false # disable unused LoadBalancer auto-config to stop BeanPostProcessor warnings
 
 eureka:
   client:

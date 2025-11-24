@@ -14,13 +14,14 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.usarbcs.driver.model.Driver_.DRIVER_STATUS;
 import static com.usarbcs.driver.model.Driver_.FIRST_NAME;
 
 
 @Repository
-public interface DriverRepository extends JpaRepository<Driver, String>, JpaSpecificationExecutor<Driver> {
+public interface DriverRepository extends JpaRepository<Driver, UUID>, JpaSpecificationExecutor<Driver> {
     Page<Driver> findAllByDeletedFalse(Pageable pageable);
     Set<Driver> findByDriverStatusStatus(String status);
 
