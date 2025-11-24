@@ -1,11 +1,20 @@
 package com.usarbcs.rating.controller;
 
+import com.usarbcs.core.exception.ExceptionResponse;
 import com.usarbcs.rating.command.RatingCommand;
 import com.usarbcs.rating.dto.RatingDto;
 import com.usarbcs.rating.payload.RatingSummaryPayload;
 import com.usarbcs.rating.service.RatingService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -30,36 +39,63 @@ import static org.springframework.web.servlet.support.ServletUriComponentsBuilde
 @RequestMapping(V1 + RATINGS)
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Rating Controller", description = "CRUD and reporting endpoints for driver ratings")
 public class RatingController {
 
     private final RatingService ratingService;
 
     @PostMapping
-    public ResponseEntity<RatingDto> create(@RequestBody RatingCommand command) {
+    @Operation(
+            summary = "Create or update a driver rating",
+            description = "Creates a new rating for a driver/customer pair or refreshes the existing record when the pair already exists."
+    )
+    @ApiResponse(responseCode = "201", description = "Rating persisted", content = @Content(schema = @Schema(implementation = RatingDto.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid payload", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    public ResponseEntity<RatingDto> create(@Valid @RequestBody RatingCommand command) {
         final RatingDto rating = ratingService.saveRating(command);
         final URI location = fromCurrentRequest().path("/{id}").buildAndExpand(rating.getId()).toUri();
         return ResponseEntity.created(location).body(rating);
     }
 
     @GetMapping("/{ratingId}")
-    public ResponseEntity<RatingDto> getById(@PathVariable UUID ratingId) {
+    @Operation(summary = "Retrieve a rating by id")
+    @ApiResponse(responseCode = "200", description = "Rating found", content = @Content(schema = @Schema(implementation = RatingDto.class)))
+    @ApiResponse(responseCode = "404", description = "Rating not found", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    public ResponseEntity<RatingDto> getById(@Parameter(description = "Rating identifier", required = true)
+                                             @PathVariable UUID ratingId) {
         return ResponseEntity.ok(ratingService.getRating(ratingId));
     }
 
     @GetMapping
-    public ResponseEntity<Page<RatingDto>> search(@RequestParam(required = false) String driverId,
-                                                  @RequestParam(required = false) String customerId,
-                                                  @PageableDefault(size = 20) Pageable pageable) {
+    @Operation(
+            summary = "Search ratings",
+            description = "Filters ratings by driver, customer, or both and returns a pageable result set."
+    )
+    @ApiResponse(responseCode = "200", description = "Paged result returned")
+    public ResponseEntity<Page<RatingDto>> search(
+            @Parameter(description = "Filter by driver identifier")
+            @RequestParam(required = false) String driverId,
+            @Parameter(description = "Filter by customer identifier")
+            @RequestParam(required = false) String customerId,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ratingService.search(driverId, customerId, pageable));
     }
 
     @GetMapping("/driver/{driverId}/summary")
-    public ResponseEntity<RatingSummaryPayload> driverSummary(@PathVariable String driverId) {
+    @Operation(summary = "Aggregate rating stats for a driver")
+    @ApiResponse(responseCode = "200", description = "Summary computed", content = @Content(schema = @Schema(implementation = RatingSummaryPayload.class)))
+    @ApiResponse(responseCode = "400", description = "Missing or invalid driverId", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    public ResponseEntity<RatingSummaryPayload> driverSummary(@Parameter(description = "Driver identifier", required = true)
+                                                             @PathVariable String driverId) {
         return ResponseEntity.ok(ratingService.summarizeDriver(driverId));
     }
 
     @DeleteMapping("/{ratingId}")
-    public ResponseEntity<Void> delete(@PathVariable UUID ratingId) {
+    @Operation(summary = "Delete a rating")
+    @ApiResponse(responseCode = "204", description = "Rating removed")
+    @ApiResponse(responseCode = "404", description = "Rating not found", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    public ResponseEntity<Void> delete(@Parameter(description = "Rating identifier", required = true)
+                                       @PathVariable UUID ratingId) {
         ratingService.delete(ratingId);
         return ResponseEntity.noContent().build();
     }
