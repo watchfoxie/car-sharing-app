@@ -9,6 +9,7 @@ import com.usarbcs.payment.service.dto.CreditCardDto;
 import com.usarbcs.payment.service.dto.PaymentRecordDto;
 import com.usarbcs.payment.service.payload.AccountDetailsPayload;
 import com.usarbcs.payment.service.service.PaymentAccountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class PaymentController {
     private final PaymentAccountService paymentAccountService;
 
     @PostMapping("/accounts")
-    public ResponseEntity<BankAccountDto> createAccount(@RequestBody BankAccountCommand command) {
+    public ResponseEntity<BankAccountDto> createAccount(@Valid @RequestBody BankAccountCommand command) {
         BankAccountDto account = paymentAccountService.createAccount(command);
         URI uri = fromCurrentRequest().path("/{id}").buildAndExpand(account.getId()).toUri();
         return ResponseEntity.created(uri).body(account);
@@ -43,7 +44,7 @@ public class PaymentController {
 
     @PatchMapping("/accounts/{accountId}/status")
     public ResponseEntity<BankAccountDto> updateStatus(@PathVariable UUID accountId,
-                                                       @RequestBody AccountStatusCommand command) {
+                                                       @Valid @RequestBody AccountStatusCommand command) {
         return ResponseEntity.ok(paymentAccountService.updateStatus(accountId, command));
     }
 
@@ -54,14 +55,14 @@ public class PaymentController {
 
     @PostMapping("/accounts/{accountId}/credit-cards")
     public ResponseEntity<CreditCardDto> addCard(@PathVariable UUID accountId,
-                                                 @RequestBody CreditCardCommand command) {
+                                                 @Valid @RequestBody CreditCardCommand command) {
         CreditCardDto card = paymentAccountService.addCard(accountId, command);
         URI uri = fromCurrentRequest().path("/{id}").buildAndExpand(card.getId()).toUri();
         return ResponseEntity.created(uri).body(card);
     }
 
     @PostMapping("/payments")
-    public ResponseEntity<PaymentRecordDto> registerPayment(@RequestBody PaymentCommand command) {
+    public ResponseEntity<PaymentRecordDto> registerPayment(@Valid @RequestBody PaymentCommand command) {
         return ResponseEntity.ok(paymentAccountService.registerPayment(command));
     }
 
