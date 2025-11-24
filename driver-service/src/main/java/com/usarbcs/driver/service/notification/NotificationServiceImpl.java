@@ -4,6 +4,8 @@ package com.usarbcs.driver.service.notification;
 import com.usarbcs.core.exception.BusinessException;
 import com.usarbcs.core.exception.ExceptionPayloadFactory;
 import com.usarbcs.driver.command.AcceptRequestCustomer;
+import com.usarbcs.core.util.Assert;
+import com.usarbcs.driver.command.CustomerRequestDriver;
 import com.usarbcs.driver.model.Driver;
 import com.usarbcs.driver.model.NotificationDriver;
 import com.usarbcs.driver.repository.DriverRepository;
@@ -13,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +23,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class NotificationServiceImpl implements NotificationService{
 
 
@@ -36,14 +40,35 @@ public class NotificationServiceImpl implements NotificationService{
 
     @Override
     public Driver acceptRequest(final AcceptRequestCustomer acceptRequestCustomer) {
-        return null;
+        validatePayload(acceptRequestCustomer);
+        final Driver driver = fetchDriver(acceptRequestCustomer.getDriverId());
+        var existingNotification = notificationDriverRepository.findByCustomerIdAndDriver(acceptRequestCustomer.getCustomerId(), driver);
+        if(existingNotification == null){
+            final CustomerRequestDriver requestDriver = CustomerRequestDriver.create(
+                    acceptRequestCustomer.getCustomerId(),
+                    acceptRequestCustomer.getDriverId()
+            );
+            existingNotification = NotificationDriver.create(requestDriver);
+            existingNotification.linkToDriver(driver);
+            notificationDriverRepository.save(existingNotification);
+            driver.addToDriver(existingNotification);
+        }
+        driverRepository.save(driver);
+        log.info("[+] Driver with id {} accepted request for customer {}", acceptRequestCustomer.getDriverId(), acceptRequestCustomer.getCustomerId());
+        return driver;
     }
     @Override
     public Driver cancelRequest(final AcceptRequestCustomer acceptRequestCustomer){
+        validatePayload(acceptRequestCustomer);
         final Driver driver = fetchDriver(acceptRequestCustomer.getDriverId());
         log.info("[+] Driver with id {} fetched successfully", acceptRequestCustomer.getDriverId());
         final NotificationDriver notificationDriver = notificationDriverRepository.findByCustomerIdAndDriver(acceptRequestCustomer.getCustomerId(), driver);
+        if(notificationDriver == null){
+            throw new BusinessException(ExceptionPayloadFactory.CUSTOMER_NOT_FOUND.get());
+        }
         driver.cancelRequestNotification(notificationDriver);
+        notificationDriverRepository.delete(notificationDriver);
+        driverRepository.save(driver);
         return driver;
     }
     @Override
@@ -71,5 +96,10 @@ public class NotificationServiceImpl implements NotificationService{
         } catch (IllegalArgumentException ex) {
             throw new BusinessException(ExceptionPayloadFactory.DRIVER_NOT_FOUND.get());
         }
+    }
+
+    private void validatePayload(AcceptRequestCustomer acceptRequestCustomer) {
+        Assert.assertNotBlank(acceptRequestCustomer.getDriverId());
+        Assert.assertNotBlank(acceptRequestCustomer.getCustomerId());
     }
 }
