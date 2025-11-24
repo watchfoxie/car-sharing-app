@@ -1,13 +1,16 @@
 spring:
   application:
     name: driver-location
+  cloud:
+    loadbalancer:
+      enabled: false # disable unused LoadBalancer auto-config to stop BeanPostProcessor warnings
   datasource:
     url: jdbc:postgresql://localhost:5432/driver_location
     username: csadmin
     password: csadmin123
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
   jackson:
     serialization:

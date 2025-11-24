@@ -9,7 +9,7 @@ spring:
       - org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration
   cloud:
     loadbalancer:
-      enabled: false
+      enabled: false # disable unused LoadBalancer auto-config to stop BeanPostProcessor warnings
   r2dbc:
     url: ${SPRING_R2DBC_URL:r2dbc:postgresql://localhost:5432/auth_service}
     username: ${SPRING_R2DBC_USERNAME:csadmin}
