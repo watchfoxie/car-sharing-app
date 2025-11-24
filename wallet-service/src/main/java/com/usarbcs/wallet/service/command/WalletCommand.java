@@ -1,5 +1,7 @@
 package com.usarbcs.wallet.service.command;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,7 +13,10 @@ import static com.usarbcs.core.util.Assert.assertNotNull;
 @Getter
 @Setter
 public class WalletCommand {
+    @NotNull
     private UUID accountId;
+
+    @PositiveOrZero
     private BigDecimal initialBalance;
 
     public void validate() {

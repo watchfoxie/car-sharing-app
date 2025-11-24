@@ -1,5 +1,9 @@
 package com.usarbcs.wallet.service.command;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +17,12 @@ import static com.usarbcs.core.util.Assert.assertNotNull;
 @Setter
 public class WalletPaymentCommand {
     private UUID creditCardId;
+    @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal amount;
+
+    @NotBlank
+    @Schema(allowableValues = {"CREDIT", "DEBIT"})
     private String paymentType;
     private String barCode;
 

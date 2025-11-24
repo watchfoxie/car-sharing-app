@@ -7,6 +7,7 @@ import com.usarbcs.wallet.service.command.WalletPaymentCommand;
 import com.usarbcs.wallet.service.dto.WalletDto;
 import com.usarbcs.wallet.service.payload.WalletSnapshotPayload;
 import com.usarbcs.wallet.service.service.WalletService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class WalletController {
     private final WalletService walletService;
 
     @PostMapping
-    public ResponseEntity<WalletDto> create(@RequestBody WalletCommand command) {
+    public ResponseEntity<WalletDto> create(@Valid @RequestBody WalletCommand command) {
         WalletDto wallet = walletService.create(command);
         URI uri = fromCurrentRequest().path("/{id}").buildAndExpand(wallet.getId()).toUri();
         return ResponseEntity.created(uri).body(wallet);
@@ -56,13 +57,13 @@ public class WalletController {
 
     @PostMapping("/{walletId}/credit-card")
     public ResponseEntity<WalletDto> addCreditCard(@PathVariable UUID walletId,
-                                                   @RequestBody WalletCreditCardCommand command) {
+                                                   @Valid @RequestBody WalletCreditCardCommand command) {
         return ResponseEntity.ok(walletService.addCreditCard(walletId, command));
     }
 
     @PostMapping("/{walletId}" + WALLET_PAYMENT)
     public ResponseEntity<WalletDto> registerPayment(@PathVariable UUID walletId,
-                                                     @RequestBody WalletPaymentCommand command) {
+                                                     @Valid @RequestBody WalletPaymentCommand command) {
         return ResponseEntity.ok(walletService.registerPayment(walletId, command));
     }
 
