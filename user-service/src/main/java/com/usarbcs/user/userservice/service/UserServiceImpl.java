@@ -9,8 +9,10 @@ import com.usarbcs.user.userservice.repository.UserRepository;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -36,7 +38,8 @@ public class UserServiceImpl implements UserService{
                     user.setPassword(passwordEncoder.encode(user.getPassword()));
                     return userRepository.save(user);
                 })
-                .onErrorResume(ValidationException.class, ex -> Mono.error(new RuntimeException("Validation error: " + ex.getMessage())));
+                .onErrorMap(ValidationException.class, ex ->
+                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validation error: " + ex.getMessage(), ex));
     }
     @Override
     public Mono<User> login(UserLoginCommand request) {
@@ -44,7 +47,7 @@ public class UserServiceImpl implements UserService{
                 .doOnNext(UserLoginCommand::validate)
                 .flatMap(cmd -> findByEmail(cmd.getEmail())
                         .filter(foundUser -> passwordEncoder.matches(cmd.getPassword(), foundUser.getPassword()))
-                        .switchIfEmpty(Mono.error(new RuntimeException("Invalid credentials"))));
+                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"))));
     }
     private Mono<User> findByEmail(String email){
         return userRepository.findActiveByEmail(email)

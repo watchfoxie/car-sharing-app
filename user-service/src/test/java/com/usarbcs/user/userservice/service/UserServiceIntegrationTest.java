@@ -18,6 +18,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -98,10 +99,8 @@ class UserServiceIntegrationTest {
         UserLoginCommand loginCommand = buildLoginCommand("wrong.pass@example.com", "DifferentPass!1");
 
         StepVerifier.create(userService.login(loginCommand))
-                .expectErrorSatisfies(throwable -> Assertions.assertThat(throwable)
-                        .isInstanceOf(RuntimeException.class)
-                        .hasMessage("Invalid credentials"))
-                .verify();
+            .expectError(ResponseStatusException.class)
+            .verify();
     }
 
     @Test

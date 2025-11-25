@@ -16,6 +16,9 @@ spring:
       enabled: false # disable unused LoadBalancer auto-config to stop BeanPostProcessor warnings
   main:
     web-application-type: reactive
+  webflux:
+    problemdetails:
+      enabled: true
   profiles:
     active: dev
 

@@ -43,7 +43,9 @@ public class RouterConfig {
                     responses = {
                         @ApiResponse(responseCode = "201", description = "User registered",
                             content = @Content(schema = @Schema(implementation = User.class))),
-                        @ApiResponse(responseCode = "400", description = "Validation error")
+                        @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationProblem"),
+                        @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
+                        @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
                     }
             )
         ),
@@ -65,7 +67,12 @@ public class RouterConfig {
                     @ApiResponse(responseCode = "200", description = "Login successful",
                         content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE,
                             schema = @Schema(implementation = String.class))),
-                    @ApiResponse(responseCode = "401", description = "Invalid credentials")
+                    @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationProblem"),
+                    @ApiResponse(responseCode = "401", description = "Invalid credentials",
+                        content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(ref = "#/components/schemas/ProblemDetail"))),
+                    @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
+                    @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
                 }
             )
         )
