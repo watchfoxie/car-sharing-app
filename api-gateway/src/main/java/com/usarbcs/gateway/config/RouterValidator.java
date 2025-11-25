@@ -1,22 +1,39 @@
 package com.usarbcs.gateway.config;
 
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 @Component
 public class RouterValidator {
 
-    public static final List<String> openApiEndpoints = List.of(
-            "/auth/v1/register",
-            "/auth/verifyIdToken"
+    private static final List<String> OPEN_API_ENDPOINTS = List.of(
+            "/",
+            "/__gateway/info",
+            "/v1/auth",
+            "/v1/auth/register",
+            "/v1/auth/login",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/actuator/**",
+            "/favicon.ico",
+            "/error"
     );
 
-    public Predicate<ServerHttpRequest> isSecured =
-            request -> openApiEndpoints
-                    .stream()
-                    .noneMatch(uri -> request.getURI().getPath().contains(uri));
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    public boolean isSecured(ServerHttpRequest request) {
+        if (request.getMethod() == HttpMethod.OPTIONS) {
+            return false;
+        }
+        final String requestPath = request.getURI().getPath();
+        return OPEN_API_ENDPOINTS.stream()
+                .noneMatch(uri -> pathMatcher.match(uri, requestPath));
+    }
 }
