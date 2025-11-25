@@ -4,8 +4,9 @@ import com.usarbcs.driverlocationservice.model.DriverLocation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.UUID;
 
-public interface DriverLocationRepository extends JpaRepository<DriverLocation, String> {
+public interface DriverLocationRepository extends JpaRepository<DriverLocation, UUID> {
 
     Optional<DriverLocation> findByDriverId(String driverId);
 

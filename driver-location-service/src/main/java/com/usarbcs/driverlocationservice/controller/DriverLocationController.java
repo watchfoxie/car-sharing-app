@@ -39,34 +39,34 @@ public class DriverLocationController {
     }
 
     @PutMapping("/{driverId}")
-    public ResponseEntity<DriverLocationDto> update(@PathVariable String driverId,
+    public ResponseEntity<DriverLocationDto> update(@PathVariable("driverId") String driverId,
                                                      @Valid @RequestBody DriverLocationCommand command) {
         return ResponseEntity.ok(driverLocationService.update(driverId, command));
     }
 
     @PatchMapping("/{driverId}/availability")
-    public ResponseEntity<DriverLocationDto> updateAvailability(@PathVariable String driverId,
+    public ResponseEntity<DriverLocationDto> updateAvailability(@PathVariable("driverId") String driverId,
                                                                  @Valid @RequestBody AvailabilityCommand command) {
         return ResponseEntity.ok(driverLocationService.updateAvailability(driverId, command));
     }
 
     @GetMapping("/{driverId}")
-    public ResponseEntity<DriverLocationPayload> ensureLocation(@PathVariable String driverId) {
+    public ResponseEntity<DriverLocationPayload> ensureLocation(@PathVariable("driverId") String driverId) {
         return ResponseEntity.ok(driverLocationService.ensureDriverLocation(driverId));
     }
 
     @GetMapping(ResourcePath.DRIVER_LOCATION_DETAILS + "/{driverId}")
-    public ResponseEntity<DriverLocationDto> getDetails(@PathVariable String driverId) {
+    public ResponseEntity<DriverLocationDto> getDetails(@PathVariable("driverId") String driverId) {
         return ResponseEntity.ok(driverLocationService.getDetails(driverId));
     }
 
     @GetMapping("/snapshot/{driverId}")
-    public ResponseEntity<DriverLocationView> getSnapshot(@PathVariable String driverId) {
+    public ResponseEntity<DriverLocationView> getSnapshot(@PathVariable("driverId") String driverId) {
         return ResponseEntity.ok(driverLocationService.getView(driverId));
     }
 
     @DeleteMapping("/{driverId}")
-    public ResponseEntity<Void> delete(@PathVariable String driverId) {
+    public ResponseEntity<Void> delete(@PathVariable("driverId") String driverId) {
         driverLocationService.deleteByDriverId(driverId);
         return ResponseEntity.noContent().build();
     }

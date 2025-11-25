@@ -17,7 +17,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.util.StringUtils;
 
 @Component
 public class DriverLocationMapper {
@@ -63,7 +66,7 @@ public class DriverLocationMapper {
             return null;
         }
         LocationEntity entity = new LocationEntity();
-        entity.setId(command.getId());
+        entity.setId(parseUuid(command.getId()));
         entity.setPreferred(command.getPreferred());
         entity.setActive(command.getActive());
         entity.setGeoPoint(toGeoPoint(command.getGeoIp()));
@@ -89,7 +92,7 @@ public class DriverLocationMapper {
             return null;
         }
         DriverLocationDto dto = new DriverLocationDto();
-        dto.setId(driverLocation.getId());
+        dto.setId(uuidToString(driverLocation.getId()));
         dto.setDriverId(driverLocation.getDriverId());
         dto.setName(driverLocation.getName());
         dto.setAvailable(driverLocation.getAvailable());
@@ -107,7 +110,7 @@ public class DriverLocationMapper {
             return null;
         }
         LocationEntityDto dto = new LocationEntityDto();
-        dto.setId(entity.getId());
+        dto.setId(uuidToString(entity.getId()));
         dto.setActive(entity.getActive());
         dto.setGeoIp(toGeoIp(entity.getGeoPoint()));
         return dto;
@@ -132,7 +135,7 @@ public class DriverLocationMapper {
             return null;
         }
         return DriverLocationView.builder()
-                .id(driverLocation.getId())
+                .id(uuidToString(driverLocation.getId()))
                 .driverId(driverLocation.getDriverId())
                 .name(driverLocation.getName())
                 .available(driverLocation.getAvailable())
@@ -152,7 +155,7 @@ public class DriverLocationMapper {
         }
         GeoPoint geoPoint = entity.getGeoPoint();
         return LocationView.builder()
-                .id(entity.getId())
+                .id(uuidToString(entity.getId()))
                 .active(entity.getActive())
                 .preferred(entity.getPreferred())
                 .ipAddress(geoPoint != null ? geoPoint.getIpAddress() : null)
@@ -191,5 +194,16 @@ public class DriverLocationMapper {
                 .latitude(geoPoint.getLatitude())
                 .longitude(geoPoint.getLongitude())
                 .build();
+    }
+
+    private UUID parseUuid(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        return UUID.fromString(value);
+    }
+
+    private String uuidToString(UUID value) {
+        return value != null ? value.toString() : null;
     }
 }
