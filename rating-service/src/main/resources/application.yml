@@ -52,4 +52,4 @@ management:
 
 logging:
   level:
-    com.usarbcs.rating: DEBUG
+    "[com.usarbcs.rating]": DEBUG

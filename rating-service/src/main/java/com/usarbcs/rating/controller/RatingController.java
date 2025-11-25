@@ -1,6 +1,5 @@
 package com.usarbcs.rating.controller;
 
-import com.usarbcs.core.exception.ExceptionResponse;
 import com.usarbcs.rating.command.RatingCommand;
 import com.usarbcs.rating.dto.RatingDto;
 import com.usarbcs.rating.payload.RatingSummaryPayload;
@@ -10,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,8 +49,13 @@ public class RatingController {
             summary = "Create or update a driver rating",
             description = "Creates a new rating for a driver/customer pair or refreshes the existing record when the pair already exists."
     )
-    @ApiResponse(responseCode = "201", description = "Rating persisted", content = @Content(schema = @Schema(implementation = RatingDto.class)))
-    @ApiResponse(responseCode = "400", description = "Invalid payload", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Rating persisted",
+                content = @Content(schema = @Schema(implementation = RatingDto.class))),
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationProblem"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
+        })
     public ResponseEntity<RatingDto> create(@Valid @RequestBody RatingCommand command) {
         final RatingDto rating = ratingService.saveRating(command);
         final URI location = fromCurrentRequest().path("/{id}").buildAndExpand(rating.getId()).toUri();
@@ -59,8 +64,12 @@ public class RatingController {
 
     @GetMapping("/{ratingId}")
     @Operation(summary = "Retrieve a rating by id")
-    @ApiResponse(responseCode = "200", description = "Rating found", content = @Content(schema = @Schema(implementation = RatingDto.class)))
-    @ApiResponse(responseCode = "404", description = "Rating not found", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Rating found",
+                content = @Content(schema = @Schema(implementation = RatingDto.class))),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFoundProblem"),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
+        })
     public ResponseEntity<RatingDto> getById(@Parameter(description = "Rating identifier", required = true)
                                              @PathVariable UUID ratingId) {
         return ResponseEntity.ok(ratingService.getRating(ratingId));
@@ -83,8 +92,12 @@ public class RatingController {
 
     @GetMapping("/driver/{driverId}/summary")
     @Operation(summary = "Aggregate rating stats for a driver")
-    @ApiResponse(responseCode = "200", description = "Summary computed", content = @Content(schema = @Schema(implementation = RatingSummaryPayload.class)))
-    @ApiResponse(responseCode = "400", description = "Missing or invalid driverId", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Summary computed",
+                content = @Content(schema = @Schema(implementation = RatingSummaryPayload.class))),
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationProblem"),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
+        })
     public ResponseEntity<RatingSummaryPayload> driverSummary(@Parameter(description = "Driver identifier", required = true)
                                                              @PathVariable String driverId) {
         return ResponseEntity.ok(ratingService.summarizeDriver(driverId));
@@ -92,8 +105,11 @@ public class RatingController {
 
     @DeleteMapping("/{ratingId}")
     @Operation(summary = "Delete a rating")
-    @ApiResponse(responseCode = "204", description = "Rating removed")
-    @ApiResponse(responseCode = "404", description = "Rating not found", content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Rating removed"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFoundProblem"),
+            @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
+        })
     public ResponseEntity<Void> delete(@Parameter(description = "Rating identifier", required = true)
                                        @PathVariable UUID ratingId) {
         ratingService.delete(ratingId);
