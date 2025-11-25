@@ -3,6 +3,9 @@ spring:
     name: AUTH
   main:
     web-application-type: reactive
+  webflux:
+    problemdetails:
+      enabled: true
   autoconfigure:
     exclude:
       - org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration
