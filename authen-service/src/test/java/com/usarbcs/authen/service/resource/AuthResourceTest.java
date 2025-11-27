@@ -49,7 +49,7 @@ class AuthResourceTest {
 
         StepVerifier.create(authResource.createPerson(registerCommand))
             .assertNext(message -> assertThat(message)
-                .isEqualTo("User created successfully with ID: " + user))
+                .isEqualTo("User created successfully with ID: " + user.getId()))
                 .verifyComplete();
 
         verify(authService).register(registerCommand);

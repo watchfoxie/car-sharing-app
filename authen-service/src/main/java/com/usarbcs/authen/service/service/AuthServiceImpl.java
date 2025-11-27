@@ -7,9 +7,12 @@ import com.usarbcs.authen.service.exception.RoleAssignmentFailedException;
 import com.usarbcs.authen.service.model.Role;
 import com.usarbcs.authen.service.model.User;
 import com.usarbcs.authen.service.repository.AuthRepository;
+import com.usarbcs.core.exception.BusinessException;
+import com.usarbcs.core.exception.ExceptionPayloadFactory;
 import com.usarbcs.core.util.JSONUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,16 +38,28 @@ public class AuthServiceImpl implements AuthService{
     public Mono<User> register(RegisterCommand request) {
         log.info("Begin creating user with payload {}", JSONUtil.toJSON(request));
         final User user = User.create(request);
-        log.info("User with id {} created successfully", user.getId());
+        log.info("Begin validation for user email {}", user.getEmail());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         final Set<RoleType> requestedRoles = extractRoleTypes(user);
         user.setRoles(Collections.emptySet());
 
+        return authRepository.findActiveByEmail(user.getEmail())
+            .flatMap(existing -> Mono.<User>error(emailAlreadyExists(user.getEmail())))
+                .switchIfEmpty(Mono.defer(() -> persistUser(user, requestedRoles)))
+                .doOnSuccess(saved -> log.info("User {} persisted with {} role(s)", saved.getId(), saved.getRoles().size()))
+                .onErrorMap(DuplicateKeyException.class, ex -> emailAlreadyExists(user.getEmail()));
+    }
+
+    private Mono<User> persistUser(User user, Set<RoleType> requestedRoles) {
         return authRepository.save(user)
             .flatMap(saved -> roleManagementService.assignRoles(saved.getId(), requestedRoles)
                 .then(Mono.defer(() -> roleManagementService.loadRoles(saved.getId())))
-                .flatMap(roleTypes -> validateAndAttachRoles(saved, requestedRoles, roleTypes)))
-                .doOnSuccess(saved -> log.info("User {} persisted with {} role(s)", saved.getId(), saved.getRoles().size()));
+                .flatMap(roleTypes -> validateAndAttachRoles(saved, requestedRoles, roleTypes)));
+    }
+
+    private BusinessException emailAlreadyExists(String email) {
+        log.warn("An account with email {} already exists", email);
+        return new BusinessException(ExceptionPayloadFactory.EMAIL_ALREADY_EXIST.get(), email);
     }
 
     private Set<RoleType> extractRoleTypes(User user) {

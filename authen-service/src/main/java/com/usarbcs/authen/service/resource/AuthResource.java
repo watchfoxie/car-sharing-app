@@ -42,6 +42,6 @@ public class AuthResource {
         })
         public Mono<String> createPerson(@Valid @RequestBody RegisterCommand req) {
         return authService.register(req)
-                .map(userId -> "User created successfully with ID: " + userId);
+            .map(user -> "User created successfully with ID: " + user.getId());
     }
 }
