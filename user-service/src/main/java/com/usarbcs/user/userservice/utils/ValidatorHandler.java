@@ -1,9 +1,9 @@
 package com.usarbcs.user.userservice.utils;
 
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebInputException;
 
 import java.util.Set;
 
@@ -18,10 +18,9 @@ public class ValidatorHandler {
 
 
     public <T> void validate(T o) {
-        Set<ConstraintViolation<T>> validate = validator.validate(o);
-        if(! validate.isEmpty()) {
-            ConstraintViolation<T> violation = validate.stream().iterator().next();
-            throw new ServerWebInputException(violation.toString());
+        Set<ConstraintViolation<T>> violations = validator.validate(o);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
         }
     }
 }

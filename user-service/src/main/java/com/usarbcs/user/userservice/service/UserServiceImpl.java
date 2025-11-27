@@ -2,11 +2,8 @@ package com.usarbcs.user.userservice.service;
 
 import com.usarbcs.command.UserLoginCommand;
 import com.usarbcs.command.UserRegisterCommand;
-import com.usarbcs.core.exception.BusinessException;
-import com.usarbcs.core.exception.ExceptionPayloadFactory;
 import com.usarbcs.user.userservice.model.User;
 import com.usarbcs.user.userservice.repository.UserRepository;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,21 +34,25 @@ public class UserServiceImpl implements UserService{
                     User user = User.create(cmd);
                     user.setPassword(passwordEncoder.encode(user.getPassword()));
                     return userRepository.save(user);
-                })
-                .onErrorMap(ValidationException.class, ex ->
-                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validation error: " + ex.getMessage(), ex));
+            });
     }
     @Override
     public Mono<User> login(UserLoginCommand request) {
         return Mono.just(request)
                 .doOnNext(UserLoginCommand::validate)
                 .flatMap(cmd -> findByEmail(cmd.getEmail())
-                        .filter(foundUser -> passwordEncoder.matches(cmd.getPassword(), foundUser.getPassword()))
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"))));
+                        .flatMap(foundUser -> passwordEncoder.matches(cmd.getPassword(), foundUser.getPassword())
+                                ? Mono.just(foundUser)
+                                : Mono.error(unauthorizedException())));
     }
-    private Mono<User> findByEmail(String email){
+
+    private Mono<User> findByEmail(String email) {
         return userRepository.findActiveByEmail(email)
-                .switchIfEmpty(Mono.error(new BusinessException(ExceptionPayloadFactory.EMAIL_ALREADY_EXIST.get())));
+                .switchIfEmpty(Mono.error(unauthorizedException()));
+    }
+
+    private ResponseStatusException unauthorizedException() {
+        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
     }
 
     @Override
