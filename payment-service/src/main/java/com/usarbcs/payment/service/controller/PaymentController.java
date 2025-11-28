@@ -13,6 +13,8 @@ import com.usarbcs.payment.service.service.PaymentAccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -68,7 +70,9 @@ public class PaymentController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
         })
-    public ResponseEntity<BankAccountDto> updateStatus(@PathVariable UUID accountId,
+    public ResponseEntity<BankAccountDto> updateStatus(
+            @Parameter(in = ParameterIn.PATH, description = "Identifier of the payment account", example = "c0a80112-3a0d-4fc1-92a9-8e2d5a5f9c21", required = true)
+            @PathVariable("accountId") UUID accountId,
                                                        @Valid @RequestBody AccountStatusCommand command) {
         return ResponseEntity.ok(paymentAccountService.updateStatus(accountId, command));
     }
@@ -82,7 +86,9 @@ public class PaymentController {
                 @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
                 @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
             })
-    public ResponseEntity<BankAccountDto> getAccount(@PathVariable UUID accountId) {
+    public ResponseEntity<BankAccountDto> getAccount(
+            @Parameter(in = ParameterIn.PATH, description = "Identifier of the payment account", example = "c0a80112-3a0d-4fc1-92a9-8e2d5a5f9c21", required = true)
+            @PathVariable("accountId") UUID accountId) {
         return ResponseEntity.ok(paymentAccountService.findOne(accountId));
     }
 
@@ -95,7 +101,9 @@ public class PaymentController {
             @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
         })
-    public ResponseEntity<CreditCardDto> addCard(@PathVariable UUID accountId,
+    public ResponseEntity<CreditCardDto> addCard(
+            @Parameter(in = ParameterIn.PATH, description = "Identifier of the payment account that will own the card", example = "c0a80112-3a0d-4fc1-92a9-8e2d5a5f9c21", required = true)
+            @PathVariable("accountId") UUID accountId,
                                                  @Valid @RequestBody CreditCardCommand command) {
         CreditCardDto card = paymentAccountService.addCard(accountId, command);
         URI uri = fromCurrentRequest().path("/{id}").buildAndExpand(card.getId()).toUri();
@@ -124,7 +132,9 @@ public class PaymentController {
                 @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
                 @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
             })
-    public ResponseEntity<AccountDetailsPayload> getAccountDetails(@PathVariable UUID accountId) {
+    public ResponseEntity<AccountDetailsPayload> getAccountDetails(
+            @Parameter(in = ParameterIn.PATH, description = "Identifier of the payment account", example = "c0a80112-3a0d-4fc1-92a9-8e2d5a5f9c21", required = true)
+            @PathVariable("accountId") UUID accountId) {
         return ResponseEntity.ok(paymentAccountService.getAccountDetails(accountId));
     }
 
@@ -138,7 +148,9 @@ public class PaymentController {
                 @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
                 @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
             })
-    public ResponseEntity<List<PaymentRecordDto>> getPayments(@PathVariable UUID accountId) {
+    public ResponseEntity<List<PaymentRecordDto>> getPayments(
+            @Parameter(in = ParameterIn.PATH, description = "Identifier of the payment account", example = "c0a80112-3a0d-4fc1-92a9-8e2d5a5f9c21", required = true)
+            @PathVariable("accountId") UUID accountId) {
         return ResponseEntity.ok(paymentAccountService.getPayments(accountId));
     }
 
@@ -151,7 +163,9 @@ public class PaymentController {
                 @ApiResponse(responseCode = "409", ref = "#/components/responses/BusinessProblem"),
                 @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
             })
-        public ResponseEntity<BankAccount> getAccountDetailsByUser(@PathVariable String userId) {
+        public ResponseEntity<BankAccount> getAccountDetailsByUser(
+            @Parameter(in = ParameterIn.PATH, description = "Identifier of the user that owns the payment account", example = "user-123", required = true)
+            @PathVariable("userId") String userId) {
         return ResponseEntity.ok(paymentAccountService.findByUserId(userId));
     }
 }

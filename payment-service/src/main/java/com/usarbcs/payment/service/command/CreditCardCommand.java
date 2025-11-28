@@ -14,15 +14,15 @@ import static com.usarbcs.core.util.Assert.assertNotBlank;
 @Setter
 public class CreditCardCommand {
 
-    @Schema(description = "Full card holder name", example = "Jane Doe")
+    @Schema(description = "Full card holder name", example = "string")
     @NotBlank
     private String holderName;
 
-    @Schema(description = "Alias used to display the card in the UI", example = "Personal Visa")
+    @Schema(description = "Alias used to display the card in the UI", example = "Personal VISA")
     @NotBlank
     private String alias;
 
-    @Schema(description = "Primary account number. Only the last four digits are persisted.", example = "4111111111111111")
+    @Schema(description = "Primary account number. Only the last four digits are persisted.", example = "string")
     @NotBlank
     @Size(min = 4)
     private String number;
@@ -35,7 +35,7 @@ public class CreditCardCommand {
     @NotBlank
     private String brand;
 
-    @Schema(description = "Card security code", example = "123")
+    @Schema(description = "Card security code", example = "string")
     @NotBlank
     private String cvv;
 

@@ -11,7 +11,7 @@ import static com.usarbcs.core.util.Assert.assertNotBlank;
 @Setter
 public class BankAccountCommand {
 
-    @Schema(description = "Identifier of the user that owns the bank account", example = "user-123")
+    @Schema(description = "Identifier of the user that owns the bank account", example = "string")
     @NotBlank
     private String userId;
 
@@ -19,7 +19,7 @@ public class BankAccountCommand {
     @NotBlank
     private String type;
 
-    @Schema(description = "Three-letter currency code", example = "USD")
+    @Schema(description = "Three-letter currency code", example = "string")
     @NotBlank
     private String currency;
 

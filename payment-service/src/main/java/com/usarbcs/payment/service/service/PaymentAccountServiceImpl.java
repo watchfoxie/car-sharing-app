@@ -88,10 +88,6 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
         command.validate();
         final BankAccount bankAccount = findAccountById(command.getBankAccountId());
         CreditCard creditCard = null;
-        if (command.getCreditCardId() != null) {
-            creditCard = creditCardRepository.findByIdAndBankAccountId(command.getCreditCardId(), bankAccount.getId())
-                    .orElseThrow(() -> new BusinessException(ExceptionPayloadFactory.CREDIT_CARD_NOT_FOUND.get()));
-        }
         final Payment payment = Payment.create(command, bankAccount, creditCard);
         bankAccount.getPayments().add(payment);
         adjustBalance(bankAccount, payment);
