@@ -3,6 +3,8 @@ package com.usarbcs.driverlocationservice.mapper;
 import com.usarbcs.core.details.DriverLocationDto;
 import com.usarbcs.core.details.GeoIp;
 import com.usarbcs.core.details.LocationEntityDto;
+import com.usarbcs.core.exception.BusinessException;
+import com.usarbcs.core.exception.ExceptionPayloadFactory;
 import com.usarbcs.driverlocationservice.command.DriverLocationCommand;
 import com.usarbcs.driverlocationservice.command.GeoIpCommand;
 import com.usarbcs.driverlocationservice.command.LocationCommand;
@@ -15,6 +17,8 @@ import com.usarbcs.driverlocationservice.payload.DriverLocationPayload;
 import com.usarbcs.driverlocationservice.payload.LocationPayload;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -34,7 +38,7 @@ public class DriverLocationMapper {
         driverLocation.setName(command.getName());
         driverLocation.setAvailable(command.getAvailable());
         driverLocation.setCarId(command.getCarId());
-        Set<LocationEntity> entities = mapLocations(command);
+        Set<LocationEntity> entities = mapLocations(command, null);
         driverLocation.setLocationEntities(entities);
         entities.forEach(loc -> loc.setDriverLocation(driverLocation));
         return driverLocation;
@@ -46,27 +50,40 @@ public class DriverLocationMapper {
         }
         driverLocation.apply(command);
         if (command.getLocations() != null && !command.getLocations().isEmpty()) {
-            Set<LocationEntity> entities = mapLocations(command);
+            Map<UUID, Integer> existingVersions = driverLocation.getLocationEntities() == null
+                    ? Collections.emptyMap()
+                    : driverLocation.getLocationEntities().stream()
+                    .filter(loc -> loc.getId() != null)
+                    .collect(Collectors.toMap(LocationEntity::getId, LocationEntity::getVersion, (left, right) -> left));
+            Set<LocationEntity> entities = mapLocations(command, existingVersions);
             driverLocation.replaceLocations(entities);
         }
     }
 
-    private Set<LocationEntity> mapLocations(DriverLocationCommand command) {
+    private Set<LocationEntity> mapLocations(DriverLocationCommand command, Map<UUID, Integer> existingVersions) {
         if (command.getLocations() == null) {
             return Set.of();
         }
         return command.getLocations().stream()
-                .map(this::toLocationEntity)
+                .map(locationCommand -> toLocationEntity(locationCommand, existingVersions))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
-    private LocationEntity toLocationEntity(LocationCommand command) {
+    private LocationEntity toLocationEntity(LocationCommand command, Map<UUID, Integer> existingVersions) {
         if (command == null) {
             return null;
         }
         LocationEntity entity = new LocationEntity();
-        entity.setId(parseUuid(command.getId()));
+        UUID locationId = parseUuid(command.getId());
+        entity.setId(locationId);
+        if (existingVersions != null && locationId != null) {
+            Integer version = existingVersions.get(locationId);
+            if (version == null) {
+                throw new BusinessException(ExceptionPayloadFactory.LOCATION_NOT_FOUND.get());
+            }
+            entity.setVersion(version);
+        }
         entity.setPreferred(command.getPreferred());
         entity.setActive(command.getActive());
         entity.setGeoPoint(toGeoPoint(command.getGeoIp()));
@@ -200,7 +217,11 @@ public class DriverLocationMapper {
         if (!StringUtils.hasText(value)) {
             return null;
         }
-        return UUID.fromString(value);
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new BusinessException(ExceptionPayloadFactory.INVALID_PAYLOAD.get());
+        }
     }
 
     private String uuidToString(UUID value) {
