@@ -6,6 +6,7 @@ import com.usarbcs.rating.payload.RatingSummaryPayload;
 import com.usarbcs.rating.service.RatingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -70,8 +71,9 @@ public class RatingController {
             @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFoundProblem"),
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
         })
-    public ResponseEntity<RatingDto> getById(@Parameter(description = "Rating identifier", required = true)
-                                             @PathVariable UUID ratingId) {
+    public ResponseEntity<RatingDto> getById(
+            @Parameter(name = "ratingId", in = ParameterIn.PATH, description = "Rating identifier", required = true)
+            @PathVariable("ratingId") UUID ratingId) {
         return ResponseEntity.ok(ratingService.getRating(ratingId));
     }
 
@@ -81,11 +83,11 @@ public class RatingController {
             description = "Filters ratings by driver, customer, or both and returns a pageable result set."
     )
     @ApiResponse(responseCode = "200", description = "Paged result returned")
-    public ResponseEntity<Page<RatingDto>> search(
-            @Parameter(description = "Filter by driver identifier")
-            @RequestParam(required = false) String driverId,
-            @Parameter(description = "Filter by customer identifier")
-            @RequestParam(required = false) String customerId,
+        public ResponseEntity<Page<RatingDto>> search(
+            @Parameter(name = "driverId", description = "Filter by driver identifier")
+            @RequestParam(name = "driverId", required = false) String driverId,
+            @Parameter(name = "customerId", description = "Filter by customer identifier")
+            @RequestParam(name = "customerId", required = false) String customerId,
             @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ratingService.search(driverId, customerId, pageable));
     }
@@ -98,8 +100,9 @@ public class RatingController {
             @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationProblem"),
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
         })
-    public ResponseEntity<RatingSummaryPayload> driverSummary(@Parameter(description = "Driver identifier", required = true)
-                                                             @PathVariable String driverId) {
+    public ResponseEntity<RatingSummaryPayload> driverSummary(
+            @Parameter(name = "driverId", in = ParameterIn.PATH, description = "Driver identifier", required = true)
+            @PathVariable("driverId") String driverId) {
         return ResponseEntity.ok(ratingService.summarizeDriver(driverId));
     }
 
@@ -110,8 +113,9 @@ public class RatingController {
             @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFoundProblem"),
             @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalProblem")
         })
-    public ResponseEntity<Void> delete(@Parameter(description = "Rating identifier", required = true)
-                                       @PathVariable UUID ratingId) {
+    public ResponseEntity<Void> delete(
+            @Parameter(name = "ratingId", in = ParameterIn.PATH, description = "Rating identifier", required = true)
+            @PathVariable("ratingId") UUID ratingId) {
         ratingService.delete(ratingId);
         return ResponseEntity.noContent().build();
     }
