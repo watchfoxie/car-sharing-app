@@ -35,10 +35,11 @@ public interface DriverRepository extends JpaRepository<Driver, UUID>, JpaSpecif
                 String pattern = PatternUtil.likePattern(driverCriteria.firstName().toUpperCase());
                 predicates.add(builder.like(builder.upper(root.get(FIRST_NAME)), pattern));
             }
-            if(driverCriteria.status() != null){
-                String pattern = PatternUtil.likePattern(String.valueOf(driverCriteria.status()));
-                predicates.add(builder.like(builder.upper(root.get(DRIVER_STATUS)), pattern));
+            if(driverCriteria.status() != null && driverCriteria.status().getStatus() != null){
+                String pattern = PatternUtil.likePattern(driverCriteria.status().getStatus().toUpperCase());
+                predicates.add(builder.like(builder.upper(root.join(DRIVER_STATUS).get("status")), pattern));
             }
+            query.distinct(true);
             return builder.and(predicates.toArray(new Predicate[]{}));
         }, pageable);
     }

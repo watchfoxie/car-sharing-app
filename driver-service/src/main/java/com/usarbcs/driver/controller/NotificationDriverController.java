@@ -9,6 +9,7 @@ import com.usarbcs.driver.mapper.NotificationDriverMapper;
 import com.usarbcs.driver.model.Driver;
 import com.usarbcs.driver.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -31,11 +32,12 @@ public class NotificationDriverController {
         return ResponseEntity.ok(driverMapper.toDto(driver));
     }
     @GetMapping
-    public ResponseEntity<Page<NotificationDriverDto>> getAllNotifications(Pageable pageable){
+    public ResponseEntity<Page<NotificationDriverDto>> getAllNotifications(@ParameterObject Pageable pageable){
         return ResponseEntity.ok(notificationService.getAll(pageable).map(notificationDriverMapper::toDto));
     }
     @GetMapping(DRIVERS + "/{driverId}")
-    public ResponseEntity<Page<NotificationDriverDto>> findAllByDriverId(@PathVariable("driverId") final String driverId, Pageable pageable){
+    public ResponseEntity<Page<NotificationDriverDto>> findAllByDriverId(@PathVariable("driverId") final String driverId,
+                                                                        @ParameterObject Pageable pageable){
         return ResponseEntity.ok(notificationService.findAllByDriverId(pageable, driverId).map(notificationDriverMapper::toDto));
     }
 }

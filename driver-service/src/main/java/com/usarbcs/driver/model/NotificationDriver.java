@@ -17,7 +17,7 @@ import lombok.Setter;
 public class NotificationDriver extends BaseEntity{
     @Column(name = "CUSTOMER_ID")
     private String customerId;
-    @ManyToOne(cascade = CascadeType.ALL ,fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Driver driver;
 
     public static NotificationDriver create(final CustomerRequestDriver customerRequestDriver){

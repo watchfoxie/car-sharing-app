@@ -2,7 +2,6 @@ package com.usarbcs.driver.model;
 
 
 import com.usarbcs.driver.command.AddressCommand;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
@@ -21,7 +20,7 @@ public class Address extends BaseEntity{
     private String city;
     private String country;
 
-    @ManyToOne(cascade = CascadeType.ALL ,fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Driver driver;
 
     public static <S extends AddressCommand>  Address create(final S addressCommand){

@@ -11,11 +11,14 @@ import com.usarbcs.driver.model.Driver;
 import com.usarbcs.driver.payload.DriverDetails;
 import com.usarbcs.driver.service.driver.DriverService;
 import com.usarbcs.driver.service.notification.NotificationService;
+import org.springdoc.core.annotations.ParameterObject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.net.URI;
 import java.util.Set;
@@ -35,6 +38,7 @@ public class DriverController {
     private final NotificationService notificationService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<DriverDto> create(@RequestBody final DriverCommand driverCommand){
         final Driver driver = driverService.create(driverCommand);
         final URI uri = fromCurrentRequest().path("/{id}").buildAndExpand(driver.getId()).toUri();
@@ -52,10 +56,11 @@ public class DriverController {
         return ResponseEntity.ok(driverMapper.toDto(driver));
     }
     @GetMapping
-    public ResponseEntity<Page<DriverDto>> getAll(Pageable pageable){
+    public ResponseEntity<Page<DriverDto>> getAll(@ParameterObject Pageable pageable){
         return ResponseEntity.ok(driverService.getAll(pageable).map(driverMapper::toDto));
     }
     @PutMapping("/{driverId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> updateInfo(
             @PathVariable("driverId") final String driverId,
             @RequestBody final DriverCommand driverCommand){
@@ -72,7 +77,8 @@ public class DriverController {
         return ResponseEntity.ok(driverMapper.toDto(driver));
     }
     @GetMapping(CRITERIA)
-    public ResponseEntity<Page<DriverDto>> getByCriteria(@RequestBody final DriverCriteria driverCriteria, Pageable pageable){
+    public ResponseEntity<Page<DriverDto>> getByCriteria(@ParameterObject final DriverCriteria driverCriteria,
+                                                        @ParameterObject final Pageable pageable){
         final Page<Driver> drivers = driverService.findAllByCriteria(pageable, driverCriteria);
         return ResponseEntity.ok(drivers.map(driverMapper::toDto));
     }

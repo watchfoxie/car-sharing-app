@@ -44,6 +44,7 @@ public class Driver extends BaseEntity{
         driver.lastName = driverCommand.getLastName();
         driver.driverStatus = DriverStatus.create("AVAILABLE");
         driver.addresses = createPayloadFromCommand(driverCommand.getAddressCommands());
+        driver.addresses.forEach(address -> address.setDriver(driver));
         return driver;
     }
     public String getLastNotification(){

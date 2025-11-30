@@ -17,10 +17,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.Set;
 import java.util.UUID;
@@ -56,37 +58,54 @@ public class DriverServiceImpl implements DriverService{
                 driver.getId());
         return driver;
     }
-    private <T> ResponseEntity<T> getEntity(String url, Class<T> eClass){
-        return restTemplate.getForEntity(url, eClass);
+    private <T> T getRequiredResource(String url,
+                                      Class<T> eClass,
+                                      ExceptionPayloadFactory notFoundPayload) {
+        try {
+            final ResponseEntity<T> responseEntity = restTemplate.getForEntity(url, eClass);
+            final T body = responseEntity.getBody();
+            if (body == null) {
+                throw new BusinessException(notFoundPayload.get());
+            }
+            return body;
+        } catch (HttpStatusCodeException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND && notFoundPayload != null) {
+                throw new BusinessException(notFoundPayload.get());
+            }
+            throw new BusinessException(ExceptionPayloadFactory.TECHNICAL_ERROR.get());
+        }
+    }
+
+    private <T> T getOptionalResource(String url,
+                                      Class<T> eClass) {
+        try {
+            return restTemplate.getForObject(url, eClass);
+        } catch (HttpStatusCodeException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return null;
+            }
+            throw new BusinessException(ExceptionPayloadFactory.TECHNICAL_ERROR.get());
+        }
     }
     @Override
     public DriverDetails getDriverDetailsByDriverId(String driverId) {
         final Driver driver = findById(driverId);
 
-        final ResponseEntity<DriverLocationDto> driverLocationDtoResponseEntity = getEntity(
-                String.format(DRIVER_LOCATION_DETAILS_URI, driverId),
-                DriverLocationDto.class
+        final DriverLocationDto driverResponse = getRequiredResource(
+            String.format(DRIVER_LOCATION_DETAILS_URI, driverId),
+            DriverLocationDto.class,
+            ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND
         );
-        var driverResponse = driverLocationDtoResponseEntity.getBody();
-        if (driverResponse == null) {
-            throw new BusinessException(ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND.get());
-        }
-        final ResponseEntity<BankAccount> bankAccountResponseEntity = getEntity(
-                String.format(PAYMENT_ACCOUNT_DETAILS_URI, driverId),
-                BankAccount.class
+
+        final BankAccount bankAccountResponse = getOptionalResource(
+            String.format(PAYMENT_ACCOUNT_DETAILS_URI, driverId),
+            BankAccount.class
         );
-        var bankAccountResponse = bankAccountResponseEntity.getBody();
-        if (bankAccountResponse == null) {
-            throw new BusinessException(ExceptionPayloadFactory.BANK_ACCOUNT_NOT_FOUND.get());
-        }
-        final ResponseEntity<WalletDetails> walletDetailsResponseEntity = getEntity(
-                String.format(WALLET_DETAILS_BY_ACCOUNT_URI, bankAccountResponse.getId()),
-                WalletDetails.class
+
+        final WalletDetails walletDetailsResponse = bankAccountResponse == null ? null : getOptionalResource(
+            String.format(WALLET_DETAILS_BY_ACCOUNT_URI, bankAccountResponse.getId()),
+            WalletDetails.class
         );
-        var walletDetailsResponse = walletDetailsResponseEntity.getBody();
-        if (walletDetailsResponse == null) {
-            throw new BusinessException(ExceptionPayloadFactory.WALLET_NOT_FOUND.get());
-        }
         return new DriverDetails(
                 driverId,
                 driver.getFirstName(),
