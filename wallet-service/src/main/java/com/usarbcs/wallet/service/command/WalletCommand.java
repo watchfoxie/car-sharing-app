@@ -1,5 +1,6 @@
 package com.usarbcs.wallet.service.command;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class WalletCommand {
     private UUID accountId;
 
     @PositiveOrZero
+    @DecimalMin(value = "0.0", inclusive = true)
     private BigDecimal initialBalance;
 
     public void validate() {

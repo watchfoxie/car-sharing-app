@@ -1,5 +1,7 @@
 package com.usarbcs.wallet.service.model;
 
+import com.usarbcs.core.exception.BusinessException;
+import com.usarbcs.core.exception.ExceptionPayloadFactory;
 import com.usarbcs.wallet.service.command.WalletCommand;
 import com.usarbcs.wallet.service.command.WalletPaymentCommand;
 import jakarta.persistence.CascadeType;
@@ -8,6 +10,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,9 +36,11 @@ public class Wallet extends BaseEntity {
     private BigDecimal balance = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Fetch(FetchMode.SUBSELECT)
     private List<WalletCreditCard> creditCards = new ArrayList<>();
 
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Fetch(FetchMode.SUBSELECT)
     private List<WalletPayment> payments = new ArrayList<>();
 
     public static Wallet create(WalletCommand command) {
@@ -65,8 +71,7 @@ public class Wallet extends BaseEntity {
     private void applyBalanceMutation(PaymentType paymentType, BigDecimal amount) {
         BigDecimal normalizedAmount = amount.setScale(2, RoundingMode.HALF_UP);
         if (paymentType == PaymentType.DEBIT && balance.compareTo(normalizedAmount) < 0) {
-            throw new com.usarbcs.core.exception.BusinessException(
-                    com.usarbcs.core.exception.ExceptionPayloadFactory.INVALID_PAYLOAD.get());
+            throw new BusinessException(ExceptionPayloadFactory.INSUFFICIENT_WALLET_BALANCE.get());
         }
         if (paymentType == PaymentType.DEBIT) {
             balance = balance.subtract(normalizedAmount);

@@ -27,7 +27,10 @@ public enum ExceptionPayloadFactory {
     WALLET_NOT_FOUND(13, HttpStatus.NOT_FOUND, "wallet.not.found"),
     CREDIT_CARD_NOT_FOUND(14, HttpStatus.NOT_FOUND, "credit.crad.not.found"),
     WALLER_FOR_ACCOUNT_NOT_FOUND(15, HttpStatus.NOT_FOUND, "wallet.for.account.not.found"),
-    ROLE_ASSIGNMENT_FAILED(16, HttpStatus.INTERNAL_SERVER_ERROR, "role.assignment.failed");
+    ROLE_ASSIGNMENT_FAILED(16, HttpStatus.INTERNAL_SERVER_ERROR, "role.assignment.failed"),
+    WALLET_ALREADY_EXISTS(17, HttpStatus.CONFLICT, "wallet.already.exists"),
+    CREDIT_CARD_ALREADY_EXISTS(18, HttpStatus.CONFLICT, "wallet.credit.card.duplicate"),
+    INSUFFICIENT_WALLET_BALANCE(19, HttpStatus.CONFLICT, "wallet.balance.insufficient");
 
     private final Integer code;
     private final HttpStatus status;

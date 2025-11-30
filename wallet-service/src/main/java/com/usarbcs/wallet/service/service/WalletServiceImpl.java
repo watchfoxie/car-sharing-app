@@ -39,7 +39,7 @@ public class WalletServiceImpl implements WalletService {
     public WalletDto create(WalletCommand command) {
         command.validate();
         if (walletRepository.existsByAccountId(command.getAccountId())) {
-            throw new BusinessException(ExceptionPayloadFactory.INVALID_PAYLOAD.get());
+            throw new BusinessException(ExceptionPayloadFactory.WALLET_ALREADY_EXISTS.get());
         }
         Wallet wallet = Wallet.create(command);
         walletRepository.save(wallet);
@@ -66,7 +66,7 @@ public class WalletServiceImpl implements WalletService {
         String fingerprint = WalletCreditCard.fingerprintOf(command);
         walletCreditCardRepository.findByFingerprintAndWalletId(fingerprint, walletId)
                 .ifPresent(card -> {
-                    throw new BusinessException(ExceptionPayloadFactory.INVALID_PAYLOAD.get());
+                    throw new BusinessException(ExceptionPayloadFactory.CREDIT_CARD_ALREADY_EXISTS.get());
                 });
         WalletCreditCard card = WalletCreditCard.create(command, wallet);
         wallet.addCreditCard(card);

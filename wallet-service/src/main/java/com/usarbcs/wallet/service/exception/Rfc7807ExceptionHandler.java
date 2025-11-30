@@ -1,5 +1,8 @@
 package com.usarbcs.wallet.service.exception;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.usarbcs.core.exception.BusinessException;
 import com.usarbcs.core.exception.ExceptionPayload;
 import com.usarbcs.core.exception.ExceptionPayloadFactory;
@@ -28,6 +31,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +56,9 @@ public class Rfc7807ExceptionHandler {
     private static final String PROP_ERROR_CODE = "errorCode";
     private static final String PROP_REFERENCE = "reference";
     private static final String PROP_REASON = "reason";
+    private static final String VALIDATION_DETAIL = "Payload validation failed. See the errors property for details.";
+    private static final String PAYLOAD_PATH = "payload";
+    private static final String MALFORMED_REQUEST_BODY = "Malformed request body";
 
     private final MessageSourceHandler messageSourceHandler;
 
@@ -59,8 +66,8 @@ public class Rfc7807ExceptionHandler {
     public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex,
                                                                                HttpServletRequest request) {
         ProblemDetail problem = createProblem(HttpStatus.BAD_REQUEST, VALIDATION_TYPE,
-                "Request validation failed",
-                "Payload validation failed. See the errors property for details.", request);
+            "Request validation failed",
+            VALIDATION_DETAIL, request);
         problem.setProperty(PROP_ERRORS, groupFieldErrors(ex.getFieldErrors()));
         log.debug("Validation failed for {} with payload errors {}", request.getRequestURI(), problem.getProperties());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
@@ -100,9 +107,22 @@ public class Rfc7807ExceptionHandler {
     public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex,
                                                                                HttpServletRequest request) {
         ExceptionPayload payload = ExceptionPayloadFactory.MISSING_REQUEST_BODY_ERROR_CODE.get();
+        Throwable rootCause = ex.getMostSpecificCause();
+        if (rootCause instanceof InvalidFormatException invalidFormatException) {
+            ProblemDetail problem = createJsonMappingProblem(invalidFormatException, request);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+        }
+        if (rootCause instanceof MismatchedInputException mismatchedInputException) {
+            ProblemDetail problem = createJsonMappingProblem(mismatchedInputException, request);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+        }
+        if (rootCause instanceof JsonMappingException jsonMappingException) {
+            ProblemDetail problem = createJsonMappingProblem(jsonMappingException, request);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+        }
         String detail = messageSourceHandler.getMessage(payload.getMessage());
         ProblemDetail problem = createProblem(payload.getStatus(), VALIDATION_TYPE,
-                "Malformed request body", detail, request);
+            MALFORMED_REQUEST_BODY, detail, request);
         problem.setProperty(PROP_ERROR_CODE, payload.getCode());
         return ResponseEntity.status(payload.getStatus()).body(problem);
     }
@@ -159,6 +179,74 @@ public class Rfc7807ExceptionHandler {
         return ex.getConstraintViolations().stream()
                 .collect(Collectors.groupingBy(violation -> violation.getPropertyPath().toString(), LinkedHashMap::new,
                         Collectors.mapping(ConstraintViolation::getMessage, Collectors.toList())));
+    }
+
+    private ProblemDetail createJsonMappingProblem(JsonMappingException exception, HttpServletRequest request) {
+        ProblemDetail problem = createProblem(HttpStatus.BAD_REQUEST, VALIDATION_TYPE,
+                "Request validation failed", VALIDATION_DETAIL, request);
+        problem.setProperty(PROP_ERRORS, buildJsonMappingErrors(exception));
+        return problem;
+    }
+
+    private Map<String, List<String>> buildJsonMappingErrors(JsonMappingException exception) {
+        String path = resolveJsonPath(exception.getPath());
+        if (path.isBlank()) {
+            path = PAYLOAD_PATH;
+        }
+        Map<String, List<String>> errors = new LinkedHashMap<>();
+        errors.put(path, List.of(resolveJsonMappingMessage(exception)));
+        return errors;
+    }
+
+    private String resolveJsonMappingMessage(JsonMappingException exception) {
+        if (exception instanceof InvalidFormatException invalidFormatException) {
+            return resolveInvalidFormatMessage(invalidFormatException);
+        }
+        if (exception instanceof MismatchedInputException mismatchedInputException) {
+            return resolveMismatchedInputMessage(mismatchedInputException);
+        }
+        return MALFORMED_REQUEST_BODY;
+    }
+
+    private String resolveInvalidFormatMessage(InvalidFormatException exception) {
+        Class<?> targetType = exception.getTargetType();
+        if (targetType != null && UUID.class.isAssignableFrom(targetType)) {
+            return "must be a valid UUID";
+        }
+        if (targetType != null && Number.class.isAssignableFrom(targetType)) {
+            return "must be a valid number";
+        }
+        if (targetType != null && targetType.isEnum()) {
+            String allowed = Arrays.stream(targetType.getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            return "must be one of " + allowed;
+        }
+        return "Value '" + exception.getValue() + "' is not acceptable";
+    }
+
+    private String resolveMismatchedInputMessage(MismatchedInputException exception) {
+        if (exception.getTargetType() != null) {
+            return "Invalid structure. Expected " + exception.getTargetType().getSimpleName();
+        }
+        return MALFORMED_REQUEST_BODY;
+    }
+
+    private String resolveJsonPath(List<JsonMappingException.Reference> references) {
+        if (references == null || references.isEmpty()) {
+            return "";
+        }
+        return references.stream()
+                .map(reference -> {
+                    if (reference.getFieldName() != null) {
+                        return reference.getFieldName();
+                    }
+                    if (reference.getIndex() >= 0) {
+                        return "[" + reference.getIndex() + "]";
+                    }
+                    return "?";
+                })
+                .collect(Collectors.joining("."));
     }
 
     private HttpStatus resolveStatus(HttpStatusCode statusCode) {
