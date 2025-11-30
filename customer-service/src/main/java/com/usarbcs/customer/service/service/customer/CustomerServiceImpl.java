@@ -25,11 +25,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -60,8 +63,7 @@ public class CustomerServiceImpl implements CustomerService{
     }
     @Override
     public String sendRating(RatingCommand ratingCommand) {
-        if(findById(ratingCommand.getDriverId()) == null)
-            throw new BusinessException(ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND.get());
+        findById(ratingCommand.getCustomerId());
         restTemplate.postForEntity(
             RATING_SERVICE_URI,
             ratingCommand,
@@ -102,38 +104,44 @@ public class CustomerServiceImpl implements CustomerService{
     @Override
     public CustomerDetails findCustomerDetailsById(String customerId) {
         final Customer customer = findById(customerId);
-        final ResponseEntity<DriverLocationDto> driverLocationDtoResponseEntity = getEntity(
-            String.format(DRIVER_LOCATION_DETAILS_URI, customer.getId()),
-                DriverLocationDto.class
-        );
-        var driverResponse = driverLocationDtoResponseEntity.getBody();
-        if (driverResponse == null) {
-            throw new BusinessException(ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND.get());
-        }
-        final ResponseEntity<BankAccount> bankAccountResponseEntity = getEntity(
-            String.format(PAYMENT_ACCOUNT_DETAILS_URI, customer.getId()),
-                BankAccount.class
-        );
-        var bankAccountResponse = bankAccountResponseEntity.getBody();
-        if (bankAccountResponse == null) {
-            throw new BusinessException(ExceptionPayloadFactory.BANK_ACCOUNT_NOT_FOUND.get());
-        }
-        final ResponseEntity<WalletDetails> walletDetailsResponseEntity = getEntity(
-            String.format(WALLET_DETAILS_BY_ACCOUNT_URI, bankAccountResponse.getId()),
-                WalletDetails.class
-        );
-        var walletDetailsResponse = walletDetailsResponseEntity.getBody();
-        if (walletDetailsResponse == null) {
-            throw new BusinessException(ExceptionPayloadFactory.WALLET_NOT_FOUND.get());
-        }
+        final String driverId = requireIdentifier(customer.getDriverId(), ExceptionPayloadFactory.DRIVER_NOT_FOUND);
+        final DriverLocationDto driverResponse = Objects.requireNonNull(getResource(
+                String.format(DRIVER_LOCATION_DETAILS_URI, driverId),
+                DriverLocationDto.class,
+                ExceptionPayloadFactory.DRIVER_LOCATION_NOT_FOUND
+        ), "Driver location payload must not be null");
+        final BankAccount bankAccountResponse = Objects.requireNonNull(getResource(
+                String.format(PAYMENT_ACCOUNT_DETAILS_URI, customer.getId()),
+                BankAccount.class,
+                ExceptionPayloadFactory.BANK_ACCOUNT_NOT_FOUND
+        ), "Bank account payload must not be null");
+        final WalletDetails walletDetailsResponse = Objects.requireNonNull(getResource(
+                String.format(WALLET_DETAILS_BY_ACCOUNT_URI, bankAccountResponse.getId()),
+                WalletDetails.class,
+                ExceptionPayloadFactory.WALLET_NOT_FOUND
+        ), "Wallet payload must not be null");
         return new CustomerDetails(
                 customerMapper.toDto(customer),
                 driverResponse,
                 bankAccountResponse,
                 walletDetailsResponse);
     }
-    private  <T> ResponseEntity<T> getEntity(String url, Class<T> eClass){
-        return restTemplate.getForEntity(url, eClass);
+    private  <T> T getResource(String url, Class<T> eClass, ExceptionPayloadFactory payloadFactory){
+        try {
+            return restTemplate.getForObject(url, eClass);
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode().is4xxClientError()) {
+                throw new BusinessException(payloadFactory.get());
+            }
+            throw exception;
+        }
+    }
+
+    private String requireIdentifier(String value, ExceptionPayloadFactory payloadFactory) {
+        if (!StringUtils.hasText(value)) {
+            throw new BusinessException(payloadFactory.get());
+        }
+        return value;
     }
 
     private UUID parseCustomerId(String rawId) {

@@ -7,6 +7,7 @@ import com.usarbcs.customer.service.command.CustomerRequestDriver;
 import com.usarbcs.customer.service.command.RatingCommand;
 import com.usarbcs.customer.service.criteria.CustomerCriteria;
 import com.usarbcs.customer.service.dto.CustomerDto;
+import com.usarbcs.customer.service.dto.page.CustomerPage;
 import com.usarbcs.customer.service.mapper.CustomerMapper;
 import com.usarbcs.customer.service.model.Customer;
 import com.usarbcs.customer.service.model.Driver;
@@ -47,6 +48,7 @@ public class CustomerController {
     private static final String VALIDATION_PROBLEM_REF = "#/components/responses/ValidationProblem";
     private static final String BUSINESS_PROBLEM_REF = "#/components/responses/BusinessProblem";
     private static final String INTERNAL_PROBLEM_REF = "#/components/responses/InternalProblem";
+    private static final String NOT_FOUND_PROBLEM_REF = "#/components/responses/NotFoundProblem";
 
 
         @PostMapping
@@ -71,7 +73,7 @@ public class CustomerController {
                 content = @Content(mediaType = "text/plain",
                     schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
-            @ApiResponse(responseCode = "409", ref = BUSINESS_PROBLEM_REF),
+            @ApiResponse(responseCode = "404", ref = NOT_FOUND_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
         })
         public ResponseEntity<String> sendRequestToDriver(@Valid @RequestBody final CustomerRequestDriver customerRequestDriver){
@@ -83,7 +85,7 @@ public class CustomerController {
         @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Customers retrieved",
                 content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = CustomerDto.class))),
+                    schema = @Schema(implementation = CustomerPage.class))),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
         })
@@ -109,7 +111,7 @@ public class CustomerController {
                 content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = CustomerDto.class))),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
-            @ApiResponse(responseCode = "409", ref = BUSINESS_PROBLEM_REF),
+            @ApiResponse(responseCode = "404", ref = NOT_FOUND_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
         })
         public ResponseEntity<CustomerDto> getOne(@PathVariable("customerId") final String customerId){
@@ -121,7 +123,7 @@ public class CustomerController {
         @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Customer updated"),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
-            @ApiResponse(responseCode = "409", ref = BUSINESS_PROBLEM_REF),
+            @ApiResponse(responseCode = "404", ref = NOT_FOUND_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
         })
         public ResponseEntity<Void> update(@PathVariable("customerId") final String customerId,
@@ -136,7 +138,7 @@ public class CustomerController {
                 content = @Content(mediaType = "text/plain",
                     schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
-            @ApiResponse(responseCode = "409", ref = BUSINESS_PROBLEM_REF),
+            @ApiResponse(responseCode = "404", ref = NOT_FOUND_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
         })
         public ResponseEntity<String> sendRating(@Valid @RequestBody final RatingCommand ratingCommand){
@@ -147,7 +149,7 @@ public class CustomerController {
         @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Customers filtered",
                 content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = CustomerDto.class))),
+                    schema = @Schema(implementation = CustomerPage.class))),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
         })
@@ -163,7 +165,7 @@ public class CustomerController {
                 content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = CustomerDetails.class))),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
-            @ApiResponse(responseCode = "409", ref = BUSINESS_PROBLEM_REF),
+            @ApiResponse(responseCode = "404", ref = NOT_FOUND_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
         })
         public ResponseEntity<CustomerDetails> findCustomerDetailsByCustomerId(@PathVariable("customerId") final String customerId){

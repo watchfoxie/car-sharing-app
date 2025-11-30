@@ -2,6 +2,7 @@ package com.usarbcs.customer.service.controller;
 
 
 import com.usarbcs.customer.service.dto.NotificationCustomerDto;
+import com.usarbcs.customer.service.dto.page.NotificationCustomerPage;
 import com.usarbcs.customer.service.mapper.NotificationCustomerMapper;
 import com.usarbcs.customer.service.model.NotificationCustomer;
 import com.usarbcs.customer.service.service.notification.NotificationCustomerService;
@@ -30,8 +31,8 @@ public class NotificationCustomerController {
     private final NotificationCustomerService notificationCustomerService;
     private final NotificationCustomerMapper notificationCustomerMapper;
     private static final String VALIDATION_PROBLEM_REF = "#/components/responses/ValidationProblem";
-    private static final String BUSINESS_PROBLEM_REF = "#/components/responses/BusinessProblem";
     private static final String INTERNAL_PROBLEM_REF = "#/components/responses/InternalProblem";
+        private static final String NOT_FOUND_PROBLEM_REF = "#/components/responses/NotFoundProblem";
 
 
     @GetMapping("/{customerId}")
@@ -39,10 +40,9 @@ public class NotificationCustomerController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Notifications retrieved",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = NotificationCustomerDto.class))),
-            @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
-            @ApiResponse(responseCode = "409", ref = BUSINESS_PROBLEM_REF),
-            @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
+                            schema = @Schema(implementation = NotificationCustomerPage.class))),
+                @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
+                @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
     })
     public ResponseEntity<Page<NotificationCustomerDto>> getAll(@PathVariable("customerId") final String customerId,
                                                                @ParameterObject final Pageable pageable){
@@ -54,6 +54,7 @@ public class NotificationCustomerController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Notifications deleted"),
             @ApiResponse(responseCode = "400", ref = VALIDATION_PROBLEM_REF),
+            @ApiResponse(responseCode = "404", ref = NOT_FOUND_PROBLEM_REF),
             @ApiResponse(responseCode = "500", ref = INTERNAL_PROBLEM_REF)
     })
     public ResponseEntity<Void> emptyNotifications(@PathVariable("customerId") final String customerId){

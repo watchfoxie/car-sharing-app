@@ -36,9 +36,11 @@ public class OpenApiConfig {
         private static final String VALIDATION_TYPE_URI = PROBLEM_BASE_URI + "/request-validation";
         private static final String BUSINESS_TYPE_URI = PROBLEM_BASE_URI + "/business-rule-violation";
         private static final String INTERNAL_TYPE_URI = PROBLEM_BASE_URI + "/internal-error";
+        private static final String RESOURCE_NOT_FOUND_TYPE_URI = PROBLEM_BASE_URI + "/resource-not-found";
         private static final String TITLE_VALIDATION = "Request validation failed";
         private static final String TITLE_BUSINESS = "Business rule violation";
         private static final String TITLE_INTERNAL = "Unexpected internal error";
+        private static final String TITLE_NOT_FOUND = "Resource not found";
         private static final String INSTANCE_EXAMPLE = "/api/v1/customers";
         private static final String PROP_TYPE = "type";
         private static final String PROP_TITLE = "title";
@@ -92,6 +94,10 @@ public class OpenApiConfig {
                 if (!hasResponse(components, "BusinessProblem")) {
                         components.addResponses("BusinessProblem",
                                         problemResponse(TITLE_BUSINESS, PROBLEM_SCHEMA, businessExample()));
+                }
+                if (!hasResponse(components, "NotFoundProblem")) {
+                        components.addResponses("NotFoundProblem",
+                                        problemResponse(TITLE_NOT_FOUND, PROBLEM_SCHEMA, resourceNotFoundExample()));
                 }
                 if (!hasResponse(components, "InternalProblem")) {
                         components.addResponses("InternalProblem",
@@ -162,6 +168,20 @@ public class OpenApiConfig {
                 payload.put(PROP_DETAIL, "Customer workflow rule violated.");
                 payload.put(PROP_INSTANCE, INSTANCE_EXAMPLE);
                 payload.put(PROP_ERROR_CODE, 16);
+                example.setValue(payload);
+                return example;
+        }
+
+        private Example resourceNotFoundExample() {
+                Example example = new Example();
+                example.setSummary(TITLE_NOT_FOUND);
+                Map<String, Object> payload = new LinkedHashMap<>();
+                payload.put(PROP_TYPE, RESOURCE_NOT_FOUND_TYPE_URI);
+                payload.put(PROP_TITLE, TITLE_NOT_FOUND);
+                payload.put(PROP_STATUS, 404);
+                payload.put(PROP_DETAIL, "Requested resource does not exist or is no longer available.");
+                payload.put(PROP_INSTANCE, INSTANCE_EXAMPLE);
+                payload.put(PROP_ERROR_CODE, 5);
                 example.setValue(payload);
                 return example;
         }

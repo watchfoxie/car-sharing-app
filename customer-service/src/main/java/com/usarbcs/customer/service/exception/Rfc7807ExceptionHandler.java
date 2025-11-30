@@ -44,6 +44,7 @@ public class Rfc7807ExceptionHandler {
     private static final String PROBLEM_BASE_URI = "https://car-sharing.app/problems";
     private static final URI VALIDATION_TYPE = URI.create(PROBLEM_BASE_URI + "/request-validation");
     private static final URI BUSINESS_TYPE = URI.create(PROBLEM_BASE_URI + "/business-rule-violation");
+    private static final URI RESOURCE_NOT_FOUND_TYPE = URI.create(PROBLEM_BASE_URI + "/resource-not-found");
     private static final URI INTERNAL_TYPE = URI.create(PROBLEM_BASE_URI + "/internal-error");
     private static final String HTTP_STATUS_TYPE_TEMPLATE = PROBLEM_BASE_URI + "/http-%d";
 
@@ -75,8 +76,10 @@ public class Rfc7807ExceptionHandler {
                                                                  HttpServletRequest request) {
         ExceptionPayload payload = ex.getPayload();
         HttpStatus status = payload.getStatus() == null ? HttpStatus.CONFLICT : payload.getStatus();
+        URI type = resolveBusinessProblemType(status);
+        String title = resolveBusinessProblemTitle(status);
         String detail = messageSourceHandler.getMessage(payload.getMessage(), payload.getArgs());
-        ProblemDetail problem = createProblem(status, BUSINESS_TYPE, "Business rule violation", detail, request);
+        ProblemDetail problem = createProblem(status, type, title, detail, request);
         problem.setProperty("errorCode", payload.getCode());
         return ResponseEntity.status(status).body(problem);
     }
@@ -159,5 +162,13 @@ public class Rfc7807ExceptionHandler {
     private HttpStatus resolveStatus(HttpStatusCode statusCode) {
         HttpStatus resolved = HttpStatus.resolve(statusCode.value());
         return resolved != null ? resolved : HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+
+    private URI resolveBusinessProblemType(HttpStatus status) {
+        return status == HttpStatus.NOT_FOUND ? RESOURCE_NOT_FOUND_TYPE : BUSINESS_TYPE;
+    }
+
+    private String resolveBusinessProblemTitle(HttpStatus status) {
+        return status == HttpStatus.NOT_FOUND ? "Resource not found" : "Business rule violation";
     }
 }
