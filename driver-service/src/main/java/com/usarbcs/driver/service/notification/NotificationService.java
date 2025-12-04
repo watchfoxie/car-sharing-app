@@ -1,0 +1,19 @@
+package com.usarbcs.driver.service.notification;
+
+
+import com.usarbcs.driver.command.AcceptRequestCustomer;
+import com.usarbcs.driver.model.Driver;
+import com.usarbcs.driver.model.NotificationDriver;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+public interface NotificationService {
+
+    List<NotificationDriver> getNotificationsByDriverId(String driverId);
+    Driver acceptRequest(final AcceptRequestCustomer acceptRequestCustomer);
+    Page<NotificationDriver> getAll(Pageable pageable);
+    Page<NotificationDriver> findAllByDriverId(Pageable pageable, String driverId);
+    public Driver cancelRequest(final AcceptRequestCustomer acceptRequestCustomer);
+}

@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    loadbalancer:
+      enabled: false # disable unused LoadBalancer auto-config to stop BeanPostProcessor warnings
+
+server:
+  port: 8761
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false

@@ -1,0 +1,24 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  r2dbc:
+    pool:
+      enabled: true
+      initial-size: 1
+      max-size: 10
+      max-idle-time: 30s
+      validation-query: SELECT 1
+      max-create-connection-time: 5s
+      max-acquire-time: 5s
+      max-life-time: 2m
+  cloud:
+    discovery:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+logging:
+  level:
+    root: WARN

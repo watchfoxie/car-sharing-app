@@ -1,0 +1,16 @@
+server:
+  port: 8888
+
+spring:
+  devtools:
+    livereload:
+      enabled: true
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/watchfoxie/carsharing-config-repo.git
+          clone-on-start: true
+          default-label: main

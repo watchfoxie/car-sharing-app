@@ -1,0 +1,47 @@
+package com.usarbcs.driver.repository;
+
+
+import com.usarbcs.core.util.PatternUtil;
+import com.usarbcs.driver.criteria.DriverCriteria;
+import com.usarbcs.driver.model.Driver;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static com.usarbcs.driver.model.Driver_.DRIVER_STATUS;
+import static com.usarbcs.driver.model.Driver_.FIRST_NAME;
+
+
+@Repository
+public interface DriverRepository extends JpaRepository<Driver, UUID>, JpaSpecificationExecutor<Driver> {
+    Page<Driver> findAllByDeletedFalse(Pageable pageable);
+    Set<Driver> findByDriverStatusStatus(String status);
+
+
+
+   default Page<Driver> findAllByCriteria(Pageable pageable, DriverCriteria driverCriteria){
+        return findAll((root, query, builder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if(driverCriteria.firstName() != null){
+                String pattern = PatternUtil.likePattern(driverCriteria.firstName().toUpperCase());
+                predicates.add(builder.like(builder.upper(root.get(FIRST_NAME)), pattern));
+            }
+            if(driverCriteria.status() != null && driverCriteria.status().getStatus() != null){
+                String pattern = PatternUtil.likePattern(driverCriteria.status().getStatus().toUpperCase());
+                predicates.add(builder.like(builder.upper(root.join(DRIVER_STATUS).get("status")), pattern));
+            }
+            query.distinct(true);
+            return builder.and(predicates.toArray(new Predicate[]{}));
+        }, pageable);
+    }
+}
+

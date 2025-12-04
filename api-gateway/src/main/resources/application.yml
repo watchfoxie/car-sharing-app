@@ -1,0 +1,101 @@
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  security:
+    jwt:
+      secret: VwZXJTZWNyZXRLZXlGb3JKd3RTaWduVGVzdHMxMjM=
+      token-prefix: Bearer
+      expiration: 3600000 # 1 hour
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 10s
+        pool:
+          type: fixed
+          max-connections: 200
+        http2:
+          enabled: true
+      default-filters:
+        - RemoveResponseHeader=Server
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      routes:
+        - id: gateway-info
+          uri: forward:/__gateway/info
+          predicates:
+            - Path=/
+            - Method=GET
+        - id: auth-service-register
+          uri: lb://AUTH
+          predicates:
+            - Path=/v1/auth
+            - Method=POST
+        - id: user-service-register
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/v1/auth/register
+            - Method=POST
+        - id: user-service-login
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/v1/auth/login
+            - Method=POST
+        - id: customer-service
+          uri: lb://CUSTOMER
+          predicates:
+            - Path=/v1/customers/**
+        - id: customer-notification-service
+          uri: lb://CUSTOMER
+          predicates:
+            - Path=/v1/notification-customer/**
+        - id: driver-location-service
+          uri: lb://DRIVER-LOCATION
+          predicates:
+            - Path=/v1/driver-location/**
+        - id: driver-service-drivers
+          uri: lb://DRIVER
+          predicates:
+            - Path=/v1/drivers/**
+        - id: driver-service-notifications
+          uri: lb://DRIVER
+          predicates:
+            - Path=/v1/notifications/**
+        - id: payment-service
+          uri: lb://PAYMENT
+          predicates:
+            - Path=/v1/payment/**
+        - id: wallet-service
+          uri: lb://WALLET
+          predicates:
+            - Path=/v1/wallet/**
+        - id: rating-service
+          uri: lb://RATING-SERVICE
+          predicates:
+            - Path=/v1/ratings/**
+          filters:
+            - RewritePath=/v1/ratings/(?<segment>.*), /rating-service/v1/ratings/${segment}
+      ratelimit:
+        capacity: 60
+        refill-tokens: 60
+        refill-period: PT1M
+        header-name: X-Client-Id
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    preferIpAddress: true
+
+server:
+  port: 8080
+  http2:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
